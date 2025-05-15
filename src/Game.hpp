@@ -65,7 +65,7 @@ namespace game {
     };
 
     inline bool s_gameInitialized = false;
-    inline extern std::unique_ptr<Game> g_gameInstance { nullptr };
+    inline std::unique_ptr<Game> g_gameInstance { nullptr };
 }
 
 

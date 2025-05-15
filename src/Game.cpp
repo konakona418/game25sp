@@ -15,7 +15,8 @@ game::Game::Game() {
 void game::Game::init() {
     auto& ctx = m_registry.ctx();
 
-    // 建议是不要在这些组件的析构里面写日志，因为不知道 logger 何时被析构。
+    // my advice is, do not write log in the destructor of components,
+    // as it can be pretty random - at least unknown - when logger will be destroyed.
     ctx.emplace<Logger>(true);
     auto& logger = m_registry.ctx().get<Logger>();
     logger.run();
@@ -24,7 +25,10 @@ void game::Game::init() {
     logger.logInfo("Initializing game");
 
     logger.logDebug("Current hardware concurrency: " + std::to_string(m_hardwareConcurrency));
-    ctx.emplace<ThreadPool>(m_hardwareConcurrency - 2); // 一个留给渲染线程， 一个留给 logger。
+
+    // one reserved for the render thread,
+    // which is basically the main thread. another for the main thread.
+    ctx.emplace<ThreadPool>(m_hardwareConcurrency - 2);
     auto& threadPool = m_registry.ctx().get<ThreadPool>();
     threadPool.run();
 
@@ -33,10 +37,13 @@ void game::Game::init() {
 }
 
 void game::Game::cleanup() {
-    m_registry.ctx().erase<ThreadPool>();
+    auto& ctx = m_registry.ctx();
+
+    ctx.erase<Window>();
+    ctx.erase<ThreadPool>();
 
     getLogger().logInfo("Closing logger");
-    m_registry.ctx().erase<Logger>();
+    ctx.erase<Logger>();
 }
 
 void game::Game::runAsyncImpl(std::function<void()> fn) {

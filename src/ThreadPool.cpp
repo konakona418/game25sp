@@ -23,6 +23,39 @@ void game::ThreadPool::close() {
     }
 }
 
+void game::ThreadPool::syncWait(Task&& task) {
+    std::mutex waitMutex;
+    std::condition_variable waitCond;
+    std::atomic<bool> waitFlag = false;
+
+    schedule([&]() {
+        task.run();
+        waitFlag.store(true, std::memory_order_release);
+    });
+
+    std::unique_lock waitLock(waitMutex);
+    waitCond.wait(waitLock, [&]() { return waitFlag.load(std::memory_order_acquire); });
+}
+
+void game::ThreadPool::waitForAll(const std::vector<Task>& tasks) {
+    std::mutex waitMutex;
+    std::condition_variable waitCond;
+    std::atomic<int> waitCount = 0;
+    size_t taskCount = tasks.size();
+
+    for (auto& task : tasks) {
+        // explicit better than implicit
+        schedule([&waitMutex, &waitCond, &waitCount, task, taskCount]() {
+            task.run();
+            if (waitCount.fetch_add(1, std::memory_order_acq_rel) == taskCount - 1) {
+                waitCond.notify_one();
+            }
+        });
+    }
+    std::unique_lock<std::mutex> waitLock(waitMutex);
+    waitCond.wait(waitLock, [&waitCount, taskCount]() { return waitCount.load(std::memory_order_acquire) == taskCount; });
+}
+
 void game::ThreadPool::schedule(const Task& task) {
     std::unique_lock lock(m_tasksMutex);
     m_tasks.push_back(task);
@@ -57,7 +90,7 @@ void game::ThreadPool::executor() {
                 {
                     std::scoped_lock scopedLock(m_tasksMutex);
 
-                    // 防止中间出错
+                    // in case that fake waking up occurred.
                     if (!m_tasks.empty()) {
                         task = m_tasks.front();
                         m_tasks.pop_front();
