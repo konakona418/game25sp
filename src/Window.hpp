@@ -1,0 +1,42 @@
+// Game - NWPU C++ sp25
+// Created on 2025/5/15
+// by konakona418 (https://github.com/konakona418)
+
+#ifndef WINDOW_H
+#define WINDOW_H
+
+#include <utility>
+
+#include "SFML/Graphics.hpp"
+
+namespace game {
+    class Window {
+    public:
+        Window() : m_windowSize(800, 600) {};
+
+        explicit Window(const sf::Vector2u& windowSize)
+            : m_windowSize(windowSize), m_aspectRatio(static_cast<double>(windowSize.x) / static_cast<double>(windowSize.y)) {}
+
+        Window(const sf::Vector2u& windowSize, sf::String title)
+            : m_windowSize(windowSize), m_aspectRatio(static_cast<double>(windowSize.x) / static_cast<double>(windowSize.y)), m_windowTitle(std::move(title)) {}
+
+        Window(const Window&) = delete;
+        Window& operator=(const Window&) = delete;
+
+        ~Window() = default;
+
+        void setPreferences(int fps, bool vsync) const;
+
+        void run();
+
+    private:
+        std::unique_ptr<sf::RenderWindow> m_window { nullptr };
+        sf::Vector2u m_windowSize;
+        sf::String m_windowTitle = u8"Game";
+        double m_aspectRatio { 0 };
+
+        void keepViewportScale();
+    };
+} // game
+
+#endif //WINDOW_H
