@@ -46,33 +46,38 @@ void game::ThreadPool::run() {
 
 void game::ThreadPool::executor() {
     while (m_cancellationToken.load(std::memory_order_acquire)) {
-        std::unique_lock lock(m_waitMutex);
-        m_cv.wait(lock, [this] {
-            return !m_tasks.empty() || !m_cancellationToken.load(std::memory_order_acquire);
-        });
+        {
+            std::unique_lock<std::mutex> lock(m_waitMutex);
+            m_cv.wait(lock, [this] { return !m_tasks.empty() || !m_cancellationToken.load(std::memory_order_relaxed); });
+        }
 
         if (!m_cancellationToken.load(std::memory_order_acquire)) {
             while (!m_tasks.empty()) {
-                std::scoped_lock scopedLock(m_tasksMutex);
+                Task task;
                 {
+                    std::scoped_lock scopedLock(m_tasksMutex);
+
                     // 防止中间出错
                     if (!m_tasks.empty()) {
-                        m_tasks.front().run();
+                        task = m_tasks.front();
                         m_tasks.pop_front();
                     }
                 }
+                task.run();
             }
             return;
         }
 
         while (!m_tasks.empty()) {
-            std::scoped_lock scopedLock(m_tasksMutex);
+            Task task;
             {
+                std::scoped_lock scopedLock(m_tasksMutex);
                 if (!m_tasks.empty()) {
-                    m_tasks.front().run();
+                    task = m_tasks.front();
                     m_tasks.pop_front();
                 }
             }
+            task.run();
         }
     }
 }
