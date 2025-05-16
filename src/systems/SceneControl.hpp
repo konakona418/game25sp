@@ -7,17 +7,15 @@
 
 #include <entt/entt.hpp>
 
-#include "Common.hpp"
-
 
 namespace game {
     struct CChild;
     struct CParent;
     struct CNode;
 
-    class SSceneManagementSystem {
+    class SScenePositionManagementSystem {
     public:
-        SSceneManagementSystem() = default;
+        SScenePositionManagementSystem() = default;
 
         /**
          * note that this function just initializes the entity with the scene tree components,
@@ -46,9 +44,9 @@ namespace game {
         static bool isDirty(entt::entity entity);
     };
 
-    class SScenePositionSystem {
+    class SScenePositionUpdateSystem {
     public:
-        SScenePositionSystem() = default;
+        SScenePositionUpdateSystem() = default;
 
         static void update();
 

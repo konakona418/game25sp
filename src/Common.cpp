@@ -22,4 +22,8 @@ namespace game {
     extern entt::registry& getRegistry() {
         return getGame().getRegistry();
     }
+
+    extern ResourceManager& getResourceManager() {
+        return getGame().getResourceManager();
+    }
 }

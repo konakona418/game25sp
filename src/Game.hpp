@@ -7,6 +7,8 @@
 
 #include <entt/entt.hpp>
 
+#include "ResourceManager.hpp"
+
 namespace game {
     class Logger;
     class ThreadPool;
@@ -25,6 +27,8 @@ namespace game {
         Logger& getLogger();
 
         ThreadPool& getThreadPool();
+
+        ResourceManager& getResourceManager();
 
         static Game& getInstance();
 

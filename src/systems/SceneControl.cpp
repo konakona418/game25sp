@@ -4,11 +4,12 @@
 
 #include "SceneControl.hpp"
 
+#include "Common.hpp"
 #include "Logger.hpp"
 #include "components/SceneTree.hpp"
 #include "components/Layout.hpp"
 
-entt::entity game::SSceneManagementSystem::attachSceneTreeComponents(entt::entity entity) {
+entt::entity game::SScenePositionManagementSystem::attachSceneTreeComponents(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (registry.any_of<CNode>(entity)) {
@@ -24,7 +25,7 @@ entt::entity game::SSceneManagementSystem::attachSceneTreeComponents(entt::entit
     return entity;
 }
 
-entt::entity game::SSceneManagementSystem::detachSceneTreeComponents(entt::entity entity) {
+entt::entity game::SScenePositionManagementSystem::detachSceneTreeComponents(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     auto parent = registry.get<CParent>(entity);
@@ -49,7 +50,7 @@ entt::entity game::SSceneManagementSystem::detachSceneTreeComponents(entt::entit
     return entity;
 }
 
-entt::entity game::SSceneManagementSystem::attachChild(const entt::entity parent, const entt::entity child) {
+entt::entity game::SScenePositionManagementSystem::attachChild(const entt::entity parent, const entt::entity child) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -72,7 +73,7 @@ entt::entity game::SSceneManagementSystem::attachChild(const entt::entity parent
     return child;
 }
 
-entt::entity game::SSceneManagementSystem::detachChild(const entt::entity parent, const entt::entity child) {
+entt::entity game::SScenePositionManagementSystem::detachChild(const entt::entity parent, const entt::entity child) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -90,7 +91,7 @@ entt::entity game::SSceneManagementSystem::detachChild(const entt::entity parent
     return child;
 }
 
-entt::entity game::SSceneManagementSystem::attachParent(entt::entity child, entt::entity parent) {
+entt::entity game::SScenePositionManagementSystem::attachParent(entt::entity child, entt::entity parent) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -110,7 +111,7 @@ entt::entity game::SSceneManagementSystem::attachParent(entt::entity child, entt
     return child;
 }
 
-entt::entity game::SSceneManagementSystem::detachParent(entt::entity child, entt::entity parent) {
+entt::entity game::SScenePositionManagementSystem::detachParent(entt::entity child, entt::entity parent) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -122,12 +123,10 @@ entt::entity game::SSceneManagementSystem::detachParent(entt::entity child, entt
 
     detachChild(parent, child);
 
-    markAsDirty(child);
-
     return child;
 }
 
-entt::entity game::SSceneManagementSystem::markAsDirty(entt::entity entity) {
+entt::entity game::SScenePositionManagementSystem::markAsDirty(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (registry.any_of<CSceneElementNeedsUpdate>(entity)) {
@@ -145,7 +144,7 @@ entt::entity game::SSceneManagementSystem::markAsDirty(entt::entity entity) {
     return entity;
 }
 
-entt::entity game::SSceneManagementSystem::markAsClean(entt::entity entity) {
+entt::entity game::SScenePositionManagementSystem::markAsClean(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CSceneElementNeedsUpdate>(entity)) {
@@ -158,7 +157,7 @@ entt::entity game::SSceneManagementSystem::markAsClean(entt::entity entity) {
     return entity;
 }
 
-entt::entity game::SSceneManagementSystem::markAsCleanRecurse(entt::entity entity) {
+entt::entity game::SScenePositionManagementSystem::markAsCleanRecurse(entt::entity entity) {
     auto& registry = game::getRegistry();
     if (registry.any_of<CSceneElementNeedsUpdate>(entity)) {
         // only mark as clean if it's dirty
@@ -172,12 +171,12 @@ entt::entity game::SSceneManagementSystem::markAsCleanRecurse(entt::entity entit
     return entity;
 }
 
-bool game::SSceneManagementSystem::isDirty(entt::entity entity) {
+bool game::SScenePositionManagementSystem::isDirty(entt::entity entity) {
     auto& registry = game::getRegistry();
     return registry.any_of<CSceneElementNeedsUpdate>(entity);
 }
 
-void game::SScenePositionSystem::update() {
+void game::SScenePositionUpdateSystem::update() {
     auto& registry = game::getRegistry();
 
     // this is to prevent potential infinite loop
@@ -240,15 +239,15 @@ void game::SScenePositionSystem::update() {
     }
 }
 
-void game::SScenePositionSystem::markEntityAsDirty(const entt::entity entity) {
-    SSceneManagementSystem::markAsDirty(entity);
+void game::SScenePositionUpdateSystem::markEntityAsDirty(const entt::entity entity) {
+    SScenePositionManagementSystem::markAsDirty(entity);
 }
 
-void game::SScenePositionSystem::markEntityAsClean(entt::entity entity) {
-    SSceneManagementSystem::markAsClean(entity);
+void game::SScenePositionUpdateSystem::markEntityAsClean(entt::entity entity) {
+    SScenePositionManagementSystem::markAsClean(entity);
 }
 
-void game::SScenePositionSystem::calculateLayout(entt::entity entity) {
+void game::SScenePositionUpdateSystem::calculateLayout(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CLayout>(entity)) {
@@ -257,26 +256,33 @@ void game::SScenePositionSystem::calculateLayout(entt::entity entity) {
 
     auto layout = registry.get<CLayout>(entity);
     auto parent = registry.get<CParent>(entity);
-    auto size = registry.get<CSize>(entity);
 
-    auto localPosition = registry.get<CLocalPosition>(entity);
+    auto localTransform = registry.get<CLocalTransform>(entity);
 
     // we need to invert the anchor vector, for its base is top left.
     auto anchorOffset = -layout.getAnchor().getAnchorVec();
+    auto absoluteScale = localTransform.getScale();
 
     if (layout.getLayoutType() == CLayout::LayoutType::Absolute ||
         parent.getParent() == entt::null) {
-        registry.get<CGlobalPosition>(entity).setPosition(
-            localPosition.getPosition()
-            + sf::Vector2f  { anchorOffset.x * size.getSize().x, anchorOffset.y * size.getSize().y });
+        registry.get<CGlobalTransform>(entity).setPosition(
+            localTransform.getPosition()
+            + sf::Vector2f  { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y });
+        registry.get<CGlobalTransform>(entity).setSize(localTransform.getSize());
+        registry.get<CGlobalTransform>(entity).setScale(absoluteScale);
         return;
     }
 
-    auto parentGlobalPosition = registry.get<CGlobalPosition>(parent.getParent());
+    auto parentGlobalTransform = registry.get<CGlobalTransform>(parent.getParent());
 
-    auto relativeOffset = localPosition.getPosition() +
-        sf::Vector2f { anchorOffset.x * size.getSize().x, anchorOffset.y * size.getSize().y };
+    auto relativeOffset = localTransform.getPosition() +
+        sf::Vector2f { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y };
 
-    registry.get<CGlobalPosition>(entity).setPosition(
-        parentGlobalPosition.getPosition() + relativeOffset);
+    registry.get<CGlobalTransform>(entity).setPosition(
+        parentGlobalTransform.getPosition() + relativeOffset);
+    registry.get<CGlobalTransform>(entity).setSize(localTransform.getSize());
+
+    auto parentScale = parentGlobalTransform.getScale();
+    auto relativeScale = sf::Vector2f { absoluteScale.x * parentScale.x, absoluteScale.y * parentScale.y};
+    registry.get<CGlobalTransform>(entity).setScale(relativeScale);
 }

@@ -10,12 +10,14 @@ namespace game {
     class Game;
     class Logger;
     class ThreadPool;
+    class ResourceManager;
 
     extern Game& getGame();
     extern Logger& getLogger();
     extern ThreadPool& getThreadPool();
 
     extern entt::registry& getRegistry();
+    extern ResourceManager& getResourceManager();
 }
 
 #endif //COMMON_HPP

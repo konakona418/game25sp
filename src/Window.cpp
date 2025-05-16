@@ -4,6 +4,9 @@
 
 #include "Window.hpp"
 
+#include "systems/RenderControl.hpp"
+#include "systems/SceneControl.hpp"
+
 namespace game {
     void Window::setPreferences(const int fps, const bool vsync) const {
         if (m_window != nullptr) {
@@ -24,6 +27,8 @@ namespace game {
                     keepViewportScale();
                 }
                 m_window->clear();
+                SScenePositionUpdateSystem::update();
+                SRenderSystem::update(*m_window);
                 m_window->display();
             }
         }

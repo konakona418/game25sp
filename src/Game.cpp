@@ -4,6 +4,7 @@
 
 #include "Game.hpp"
 
+#include "Common.hpp"
 #include "Logger.hpp"
 #include "ThreadPool.hpp"
 #include "Window.hpp"
@@ -31,6 +32,8 @@ void game::Game::init() {
     ctx.emplace<ThreadPool>(m_hardwareConcurrency - 2);
     auto& threadPool = m_registry.ctx().get<ThreadPool>();
     threadPool.run();
+
+    ctx.emplace<ResourceManager>();
 
     ctx.emplace<Window>();
     auto& window = m_registry.ctx().get<Window>();
@@ -91,4 +94,8 @@ game::Logger& game::Game::getLogger() {
 
 game::ThreadPool& game::Game::getThreadPool() {
     return m_registry.ctx().get<ThreadPool>();
+}
+
+game::ResourceManager& game::Game::getResourceManager() {
+    return m_registry.ctx().get<ResourceManager>();
 }

@@ -13,26 +13,42 @@
 namespace game {
     struct CHasLayout {};
 
-    struct CLocalPosition {
-        CLocalPosition() = default;
-        explicit CLocalPosition(const sf::Vector2f position) : m_position(position) {}
+    struct CLocalTransform {
+        CLocalTransform() = default;
+        explicit CLocalTransform(const sf::Vector2f position) : m_position(position) {}
 
         void setPosition(const sf::Vector2f position) { m_position = position; }
         [[nodiscard]] sf::Vector2f getPosition() const { return m_position; }
 
+        void setSize(const sf::Vector2f size) { m_size = size; }
+        [[nodiscard]] sf::Vector2f getSize() const { return m_size; }
+
+        void setScale(const sf::Vector2f scale) { m_scale = scale; }
+        [[nodiscard]] sf::Vector2f getScale() const { return m_scale; }
+
     private:
         sf::Vector2f m_position {0.f, 0.f};
+        sf::Vector2f m_size {0.f, 0.f};
+        sf::Vector2f m_scale {1.f, 1.f};
     };
 
-    struct CGlobalPosition {
-        CGlobalPosition() = default;
-        explicit CGlobalPosition(const sf::Vector2f position) : m_position(position) {}
+    struct CGlobalTransform {
+        CGlobalTransform() = default;
+        explicit CGlobalTransform(const sf::Vector2f position) : m_position(position) {}
 
         void setPosition(const sf::Vector2f position) { m_position = position; }
         [[nodiscard]] sf::Vector2f getPosition() const { return m_position; }
 
+        void setSize(const sf::Vector2f size) { m_size = size; }
+        [[nodiscard]] sf::Vector2f getSize() const { return m_size; }
+
+        void setScale(const sf::Vector2f scale) { m_scale = scale; }
+        [[nodiscard]] sf::Vector2f getScale() const { return m_scale; }
+
     private:
         sf::Vector2f m_position {0.f, 0.f};
+        sf::Vector2f m_size {0.f, 0.f};
+        sf::Vector2f m_scale {1.f, 1.f};
     };
 
     struct CLayout {
@@ -77,16 +93,6 @@ namespace game {
         LayoutType m_layoutType {LayoutType::Relative};
     };
 
-    struct CSize {
-        CSize() = default;
-        explicit CSize(const sf::Vector2f size) : m_size(size) {}
-
-        void setSize(const sf::Vector2f size) { m_size = size; }
-        [[nodiscard]] sf::Vector2f getSize() const { return m_size; }
-    private:
-        sf::Vector2f m_size {0.f, 0.f};
-    };
-
     class SLayoutManagementSystem {
     public:
         SLayoutManagementSystem() = default;
@@ -124,10 +130,15 @@ namespace game {
                 return *this;
             }
 
+            Builder& setScale(const sf::Vector2f scale) {
+                m_scale = scale;
+                return *this;
+            }
+
             void build(const entt::entity& entity) const;
 
         private:
-            sf::Vector2f m_size, m_localPos, m_globalPos;
+            sf::Vector2f m_size, m_localPos, m_globalPos, m_scale;
             CLayout::Anchor m_anchor { CLayout::Anchor::TopLeft() };
             CLayout::LayoutType m_layoutType { CLayout::LayoutType::Relative };
         };

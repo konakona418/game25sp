@@ -17,9 +17,10 @@ void game::SLayoutManagementSystem::Builder::build(const entt::entity& entity) c
 
     registry.get<CLayout>(entity).setAnchor(m_anchor);
     registry.get<CLayout>(entity).setLayoutType(m_layoutType);
-    registry.get<CSize>(entity).setSize(m_size);
-    registry.get<CLocalPosition>(entity).setPosition(m_localPos);
-    registry.get<CGlobalPosition>(entity).setPosition(m_globalPos);
+    registry.get<CLocalTransform>(entity).setSize(m_size);
+    registry.get<CLocalTransform>(entity).setPosition(m_localPos);
+    registry.get<CLocalTransform>(entity).setScale(m_scale);
+    registry.get<CGlobalTransform>(entity).setPosition(m_globalPos);
 }
 
 entt::entity game::SLayoutManagementSystem::attachLayoutComponents(entt::entity entity) {
@@ -31,38 +32,37 @@ entt::entity game::SLayoutManagementSystem::attachLayoutComponents(entt::entity 
 
     registry.emplace<CHasLayout>(entity);
     registry.emplace<CLayout>(entity);
-    registry.emplace<CGlobalPosition>(entity);
-    registry.emplace<CLocalPosition>(entity);
-    registry.emplace<CSize>(entity);
+    registry.emplace<CGlobalTransform>(entity);
+    registry.emplace<CLocalTransform>(entity);
     return entity;
 }
 
 void game::SLayoutManagementSystem::setPosition(entt::entity entity, sf::Vector2f position) {
     auto& registry = game::getRegistry();
-    registry.get<CLocalPosition>(entity).setPosition(position);
-    SScenePositionSystem::markEntityAsDirty(entity);
+    registry.get<CLocalTransform>(entity).setPosition(position);
+    SScenePositionUpdateSystem::markEntityAsDirty(entity);
 }
 
 void game::SLayoutManagementSystem::setAbsolutePosition(entt::entity entity, sf::Vector2f position) {
     auto& registry = game::getRegistry();
-    registry.get<CGlobalPosition>(entity).setPosition(position);
-    SScenePositionSystem::markEntityAsDirty(entity);
+    registry.get<CGlobalTransform>(entity).setPosition(position);
+    SScenePositionUpdateSystem::markEntityAsDirty(entity);
 }
 
 void game::SLayoutManagementSystem::setSize(entt::entity entity, sf::Vector2f size) {
     auto& registry = game::getRegistry();
-    registry.get<CSize>(entity).setSize(size);
-    SScenePositionSystem::markEntityAsDirty(entity);
+    registry.get<CLocalTransform>(entity).setSize(size);
+    SScenePositionUpdateSystem::markEntityAsDirty(entity);
 }
 
 void game::SLayoutManagementSystem::setAnchor(entt::entity entity, CLayout::Anchor anchor) {
     auto& registry = game::getRegistry();
     registry.get<CLayout>(entity).setAnchor(anchor);
-    SScenePositionSystem::markEntityAsDirty(entity);
+    SScenePositionUpdateSystem::markEntityAsDirty(entity);
 }
 
 void game::SLayoutManagementSystem::setLayoutType(entt::entity entity, CLayout::LayoutType layoutType) {
     auto& registry = game::getRegistry();
     registry.get<CLayout>(entity).setLayoutType(layoutType);
-    SScenePositionSystem::markEntityAsDirty(entity);
+    SScenePositionUpdateSystem::markEntityAsDirty(entity);
 }
