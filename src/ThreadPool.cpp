@@ -31,6 +31,7 @@ void game::ThreadPool::syncWait(Task&& task) {
     schedule([&]() {
         task.run();
         waitFlag.store(true, std::memory_order_release);
+        waitCond.notify_one();
     });
 
     std::unique_lock waitLock(waitMutex);

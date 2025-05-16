@@ -50,7 +50,7 @@ namespace game {
         void run();
         void close();
 
-        static std::string concatLineFile(const std::string& message, const std::string& line, const std::string& file);
+        static std::string concatLineFile(const std::string& message, int line, const std::string& file);
         void log(const std::string& message, LogLevel level);
         void logDebug(const std::string& message);
         void logInfo(const std::string& message);

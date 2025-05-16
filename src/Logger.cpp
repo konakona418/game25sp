@@ -49,7 +49,7 @@ void game::Logger::close() {
 }
 
 std::string
-game::Logger::concatLineFile(const std::string& message, const std::string& line, const std::string& file) {
+game::Logger::concatLineFile(const std::string& message, int line, const std::string& file) {
     std::stringstream ss;
     ss << message << " (" << line << ":" << file << ")";
     return ss.str();
