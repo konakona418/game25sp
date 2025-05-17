@@ -4,6 +4,7 @@
 
 #include "Window.hpp"
 
+#include "Game.hpp"
 #include "systems/RenderControl.hpp"
 #include "systems/SceneControl.hpp"
 
@@ -27,8 +28,11 @@ namespace game {
                     keepViewportScale();
                 }
                 m_window->clear();
+
+                auto deltaTime = Game::getDeltaTime();
+
                 SScenePositionUpdateSystem::update();
-                SRenderSystem::update(*m_window);
+                SRenderSystem::update(*m_window, deltaTime);
                 m_window->display();
             }
         }

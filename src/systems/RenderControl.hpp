@@ -4,6 +4,7 @@
 
 #ifndef RENDERCONTROL_HPP
 #define RENDERCONTROL_HPP
+#include "SFML/System/Time.hpp"
 
 
 namespace sf {
@@ -13,7 +14,7 @@ namespace sf {
 namespace game {
     class SRenderSystem {
     public:
-        static void update(sf::RenderTarget& target);
+        static void update(sf::RenderTarget& target, sf::Time deltaTime);
     };
 }
 

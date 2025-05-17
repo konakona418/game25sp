@@ -72,6 +72,12 @@ game::Window& game::Game::getWindow() {
 
 bool game::Game::isRunning() const { return m_isRunning; }
 
+// should be invoked only once in each loop.
+sf::Time game::Game::getDeltaTime() {
+    static sf::Clock clock;
+    return clock.restart();
+}
+
 game::Game::~Game() {
     getLogger().logInfo("Closing game");
     cleanup();

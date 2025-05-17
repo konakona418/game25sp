@@ -8,6 +8,7 @@
 #include <entt/entt.hpp>
 
 #include "ResourceManager.hpp"
+#include "SFML/System/Time.hpp"
 
 namespace game {
     class Logger;
@@ -52,6 +53,8 @@ namespace game {
             }
             getInstance().runAsyncImpl(std::function<void()>(fn));
         }
+
+        static sf::Time getDeltaTime();
 
     private:
         entt::registry m_registry;

@@ -15,6 +15,18 @@
 namespace game {
     struct CRenderComponent {};
 
+    // specify the layer for the component to be rendered
+    struct CRenderLayerComponent {
+        CRenderLayerComponent() = default;
+        explicit CRenderLayerComponent(size_t layer) : m_layer(layer) {}
+        [[nodiscard]] size_t getLayer() const { return m_layer; }
+        void setLayer(size_t layer) { m_layer = layer; }
+    private:
+        size_t m_layer;
+    };
+
+    struct CRenderTargetComponent {};
+
     struct SpriteFrame {
         sf::Time duration;
         entt::resource<Texture> texture;
@@ -41,10 +53,35 @@ namespace game {
         std::vector<entt::resource<Texture>> frames;
         bool loop = true;
         sf::Time duration;
-        size_t currentFrame = 0;
     };
 
-    struct CAnimatedSpriteRenderComponent {};
+    struct CAnimatedSpriteRenderComponent {
+        explicit CAnimatedSpriteRenderComponent(AnimatedFrames frames, const bool loop = true)
+            : m_frameControl(std::move(frames), loop) {}
+        void setFrames(AnimatedFrames frames) { m_frameControl.m_frames = std::move(frames); }
+        [[nodiscard]] AnimatedFrames getFrames() const { return m_frameControl.m_frames; }
+        void update(sf::RenderTarget& target, sf::Time deltaTime,
+            sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale);
+
+    private:
+        struct FrameControl {
+            AnimatedFrames m_frames;
+            size_t m_frameIndex;
+            size_t m_frameCount;
+            bool m_loop;
+
+            FrameControl(AnimatedFrames frames, bool loop)
+                : m_frames(std::move(frames)), m_frameIndex(0), m_frameCount(m_frames.frames.size()), m_loop(loop) {}
+            void update(sf::Time deltaTime);
+            void nextFrame();
+            [[nodiscard]] entt::resource<Texture> getCurrentFrame() const;
+            void reset();
+        };
+
+        FrameControl m_frameControl;
+        std::optional<sf::Sprite> m_sprite;
+    };
+
     struct CTiledRenderComponent {};
 } // game
 

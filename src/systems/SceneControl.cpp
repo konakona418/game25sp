@@ -194,6 +194,7 @@ void game::SScenePositionUpdateSystem::update() {
             for (const auto dirty : registry.view<CSceneElementNeedsUpdate>()) {
                 markEntityAsClean(dirty);
             }
+            return;
         }
 
         auto dirtyView = registry.view<CNode, CParent, CChild, CSceneElementNeedsUpdate>();
