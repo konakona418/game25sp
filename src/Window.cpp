@@ -38,5 +38,7 @@ namespace game {
         }
     }
 
-    void Window::keepViewportScale() {}
+    void Window::keepViewportScale() {
+        // todo: implement this
+    }
 } // game

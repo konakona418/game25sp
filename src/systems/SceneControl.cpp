@@ -260,15 +260,18 @@ void game::SScenePositionUpdateSystem::calculateLayout(entt::entity entity) {
 
     auto localTransform = registry.get<CLocalTransform>(entity);
 
-    // we need to invert the anchor vector, for its base is top left.
-    auto anchorOffset = -layout.getAnchor().getAnchorVec();
+    // we use anchor to calculate the origin offset
+    auto anchorOffset = layout.getAnchor().getAnchorVec();
+    auto calculatedOrigin = sf::Vector2f { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y };
+    registry.get<CGlobalTransform>(entity).setOrigin(calculatedOrigin);
+
     auto absoluteScale = localTransform.getScale();
 
     if (layout.getLayoutType() == CLayout::LayoutType::Absolute ||
         parent.getParent() == entt::null) {
         registry.get<CGlobalTransform>(entity).setPosition(
             localTransform.getPosition()
-            + sf::Vector2f  { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y });
+            /*+ sf::Vector2f  { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y }*/);
         registry.get<CGlobalTransform>(entity).setSize(localTransform.getSize());
         registry.get<CGlobalTransform>(entity).setScale(absoluteScale);
         return;
@@ -276,8 +279,8 @@ void game::SScenePositionUpdateSystem::calculateLayout(entt::entity entity) {
 
     auto parentGlobalTransform = registry.get<CGlobalTransform>(parent.getParent());
 
-    auto relativeOffset = localTransform.getPosition() +
-        sf::Vector2f { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y };
+    auto relativeOffset = localTransform.getPosition() /*+
+        sf::Vector2f { anchorOffset.x * localTransform.getSize().x, anchorOffset.y * localTransform.getSize().y }*/;
 
     registry.get<CGlobalTransform>(entity).setPosition(
         parentGlobalTransform.getPosition() + relativeOffset);

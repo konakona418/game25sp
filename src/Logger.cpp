@@ -22,7 +22,7 @@ void game::Logger::run() {
     m_worker = std::thread([this]() {
         while (m_cancellationToken.load(std::memory_order_acquire)) {
             std::unique_lock lock(m_mutex);
-            m_cv.wait(lock, [this]() { return !m_logQueue.empty(); });
+            m_cv.wait(lock, [this]() { return !m_logQueue.empty() || !m_cancellationToken.load(std::memory_order_acquire); });
 
             if (!m_cancellationToken.load(std::memory_order_acquire)) {
                 while (!m_logQueue.empty()) {

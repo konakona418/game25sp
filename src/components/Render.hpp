@@ -41,7 +41,7 @@ namespace game {
         void setFrame(SpriteFrame frame) { m_frame = std::move(frame); }
         [[nodiscard]] SpriteFrame getFrame() const { return m_frame; }
 
-        void update(sf::RenderTarget& target, sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale);
+        void update(sf::RenderTarget& target, sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin);
     private:
         SpriteFrame m_frame;
         std::optional<sf::Sprite> m_sprite;
@@ -61,7 +61,7 @@ namespace game {
         void setFrames(AnimatedFrames frames) { m_frameControl.m_frames = std::move(frames); }
         [[nodiscard]] AnimatedFrames getFrames() const { return m_frameControl.m_frames; }
         void update(sf::RenderTarget& target, sf::Time deltaTime,
-            sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale);
+                    sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin);
 
     private:
         struct FrameControl {
@@ -69,6 +69,7 @@ namespace game {
             size_t m_frameIndex;
             size_t m_frameCount;
             bool m_loop;
+            sf::Time m_timeAccumulated = sf::Time::Zero;
 
             FrameControl(AnimatedFrames frames, bool loop)
                 : m_frames(std::move(frames)), m_frameIndex(0), m_frameCount(m_frames.frames.size()), m_loop(loop) {}
@@ -82,7 +83,47 @@ namespace game {
         std::optional<sf::Sprite> m_sprite;
     };
 
-    struct CTiledRenderComponent {};
+    using TileIdType = uint32_t;
+    struct Tile {
+        AnimatedFrames frames {};
+        TileIdType id {};
+    };
+
+    struct SingleTileItem {
+        TileIdType tileId;
+        sf::Vector2i tilePlacement;
+        sf::Vector2i tileSize;
+        std::optional<sf::Sprite> sprite;
+
+        SingleTileItem(TileIdType tileId, sf::Vector2i tilePlacement, sf::Vector2i tileSize)
+            : tileId(tileId), tilePlacement(tilePlacement), tileSize(tileSize) {}
+    };
+
+    struct CTiledRenderComponent {
+        explicit CTiledRenderComponent(sf::Vector2f baseTilePixelSize) : m_tileControl(baseTilePixelSize) {}
+        void addTile(TileIdType id, AnimatedFrames frames);
+        void addTile(Tile tile);
+
+        void addTile(TileIdType id, sf::Vector2i tilePlacement, sf::Vector2i tileSize);
+        void addTile(const SingleTileItem& tileItem);
+
+        void update(sf::RenderTarget& target, sf::Time deltaTime,
+            sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale);
+    private:
+        struct TileControl {
+            std::unordered_map<TileIdType, Tile> m_tiles {};
+            std::vector<SingleTileItem> m_tileItemList {};
+            sf::Vector2f m_baseTilePixelSize;
+
+            void update(sf::Time deltaTime);
+            void reset();
+            Tile& getTileById(TileIdType id);
+
+            explicit TileControl(sf::Vector2f baseTilePixelSize) : m_baseTilePixelSize(baseTilePixelSize) {};
+        };
+        TileControl m_tileControl;
+
+    };
 } // game
 
 #endif //RENDER_HPP

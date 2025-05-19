@@ -25,7 +25,7 @@ void game::SRenderSystem::update(sf::RenderTarget& target, sf::Time deltaTime) {
         auto globalTransform = spriteView.get<CGlobalTransform>(entity);
         spriteView.get<CSpriteRenderComponent>(entity).update(
             target, globalTransform.getPosition(),
-            globalTransform.getSize(), globalTransform.getScale());
+            globalTransform.getSize(), globalTransform.getScale(), globalTransform.getOrigin());
     }
 
     auto animatedSpriteView = registry.view<CGlobalTransform, CRenderComponent, CRenderLayerComponent, CAnimatedSpriteRenderComponent>();
@@ -34,7 +34,7 @@ void game::SRenderSystem::update(sf::RenderTarget& target, sf::Time deltaTime) {
         auto globalTransform = animatedSpriteView.get<CGlobalTransform>(entity);
         animatedSpriteView.get<CAnimatedSpriteRenderComponent>(entity).update(
             target, deltaTime, globalTransform.getPosition(),
-            globalTransform.getSize(), globalTransform.getScale());
+            globalTransform.getSize(), globalTransform.getScale(), globalTransform.getOrigin());
     }
     // todo: implement other render systems
 }

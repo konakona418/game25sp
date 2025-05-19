@@ -45,10 +45,14 @@ namespace game {
         void setScale(const sf::Vector2f scale) { m_scale = scale; }
         [[nodiscard]] sf::Vector2f getScale() const { return m_scale; }
 
+        void setOrigin(const sf::Vector2f origin) { m_origin = origin; }
+        [[nodiscard]] sf::Vector2f getOrigin() const { return m_origin; }
+
     private:
         sf::Vector2f m_position {0.f, 0.f};
         sf::Vector2f m_size {0.f, 0.f};
         sf::Vector2f m_scale {1.f, 1.f};
+        sf::Vector2f m_origin {0.f, 0.f};
     };
 
     struct CLayout {
