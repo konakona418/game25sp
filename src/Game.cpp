@@ -33,16 +33,23 @@ void game::Game::init() {
     auto& threadPool = m_registry.ctx().get<ThreadPool>();
     threadPool.run();
 
+    logger.logInfo("Initializing resource manager");
     ctx.emplace<ResourceManager>();
 
+    logger.logInfo("Initializing window");
     ctx.emplace<Window>();
     auto& window = m_registry.ctx().get<Window>();
+
+    logger.logInfo("Initializing keyboard utilities");
+    ctx.emplace<KeyBoard>();
 }
 
 void game::Game::cleanup() {
     auto& ctx = m_registry.ctx();
 
+    ctx.erase<KeyBoard>();
     ctx.erase<Window>();
+    ctx.erase<ResourceManager>();
     ctx.erase<ThreadPool>();
 
     getLogger().logInfo("Closing logger");
@@ -51,6 +58,30 @@ void game::Game::cleanup() {
 
 void game::Game::runAsyncImpl(std::function<void()> fn) {
     getThreadPool().schedule(std::move(fn));
+}
+
+void game::Game::KeyBoard::press(sf::Keyboard::Key key) {
+    if (m_keys.find(key) == m_keys.end()) {
+        m_keys.emplace(key, Key { false, false});
+    }
+    m_keys[key].isPressed = true;
+    m_keys[key].isReleased = false;
+}
+
+void game::Game::KeyBoard::release(sf::Keyboard::Key key) {
+    if (m_keys.find(key) == m_keys.end()) {
+        m_keys.emplace(key, Key { false, false});
+    }
+    m_keys[key].isPressed = false;
+    m_keys[key].isReleased = true;
+}
+
+bool game::Game::KeyBoard::isKeyPressed(const sf::Keyboard::Key key) const {
+    return m_keys.find(key) != m_keys.end() && m_keys.at(key).isPressed;
+}
+
+bool game::Game::KeyBoard::isKeyReleased(const sf::Keyboard::Key key) const {
+    return m_keys.find(key) != m_keys.end() && m_keys.at(key).isReleased;
 }
 
 game::Game& game::Game::createGame() {
@@ -72,11 +103,9 @@ game::Window& game::Game::getWindow() {
 
 bool game::Game::isRunning() const { return m_isRunning; }
 
-// should be invoked only once in each loop.
-sf::Time game::Game::getDeltaTime() {
-    static sf::Clock clock;
-    return clock.restart();
-}
+game::Game::Config game::Game::getConfig() const { return m_config; }
+
+void game::Game::setConfig(const Config& config) { m_config = config;}
 
 game::Game::~Game() {
     getLogger().logInfo("Closing game");
@@ -86,7 +115,13 @@ game::Game::~Game() {
 void game::Game::run() {
     getLogger().logInfo("Starting game");
     runBlocking([this]() -> void {
-        getWindow().run();
+        auto& window = getWindow();
+
+        window.setWindowSize(m_config.windowSize);
+        window.setWindowTitle(m_config.windowTitle);
+        window.setVideoPreferences(m_config.fps, m_config.vsync);
+
+        window.run();
     });
 }
 
@@ -104,4 +139,12 @@ game::ThreadPool& game::Game::getThreadPool() {
 
 game::ResourceManager& game::Game::getResourceManager() {
     return m_registry.ctx().get<ResourceManager>();
+}
+
+entt::dispatcher& game::Game::getEventDispatcher() {
+    return m_dispatcher;
+}
+
+game::Game::KeyBoard& game::Game::getKeyboard() {
+    return m_registry.ctx().get<KeyBoard>();
 }

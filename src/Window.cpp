@@ -4,37 +4,75 @@
 
 #include "Window.hpp"
 
+#include "Common.hpp"
 #include "Game.hpp"
+#include "Logger.hpp"
+#include "ThreadPool.hpp"
+#include "systems/CollisionControl.hpp"
 #include "systems/RenderControl.hpp"
 #include "systems/SceneControl.hpp"
+#include "systems/ScriptsControl.hpp"
 
 namespace game {
-    void Window::setPreferences(const int fps, const bool vsync) const {
+    void Window::setVideoPreferences(const int fps, const bool vsync) {
+        m_videoPreference = { fps, vsync };
         if (m_window != nullptr) {
             m_window->setFramerateLimit(fps);
             m_window->setVerticalSyncEnabled(vsync);
+            getLogger().logDebug("Video preferences applied.");
+        } else {
+            getLogger().logDebug("Window not initialized, video preferences will be applied when window is created.");
         }
+        getLogger().logInfo("Video preferences set to: " + std::to_string(fps) + " fps, " + (vsync ? "using" : "not using") + " vsync");
+    }
+
+    void Window::setWindowTitle(sf::String title) {
+        m_windowTitle = std::move(title);
+    }
+
+    void Window::setWindowSize(const sf::Vector2u& windowSize) {
+        m_windowSize = windowSize;
     }
 
     void Window::run() {
         m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode(m_windowSize), m_windowTitle);
+        setVideoPreferences(m_videoPreference.fps, m_videoPreference.vsync);
+
+        auto& keyboard = getGame().getKeyboard();
+
+        sf::Clock internalClock;
+        internalClock.start();
+
         while (m_window->isOpen()) {
             while (auto event = m_window->pollEvent()) {
-                if (event->is<sf::Event::Closed>()) {
-                    m_window->close();
-                    return;
+                if (event.has_value()) {
+                    if (event->is<sf::Event::Closed>()) {
+                        m_window->close();
+                        return;
+                    }
+                    if (event->is<sf::Event::Resized>()) {
+                        keepViewportScale();
+                    }
+                    if (event->is<sf::Event::KeyPressed>()) {
+                        keyboard.press(event->getIf<sf::Event::KeyPressed>()->code);
+                    }
+                    if (event->is<sf::Event::KeyReleased>()) {
+                        keyboard.release(event->getIf<sf::Event::KeyReleased>()->code);
+                    }
                 }
-                if (event->is<sf::Event::Resized>()) {
-                    keepViewportScale();
-                }
-                m_window->clear();
-
-                auto deltaTime = Game::getDeltaTime();
-
-                SScenePositionUpdateSystem::update();
-                SRenderSystem::update(*m_window, deltaTime);
-                m_window->display();
             }
+
+            auto deltaTime = internalClock.restart();
+
+            // DO NOT write the logic in event polling loop!!
+            SScenePositionUpdateSystem::update();
+            SCollisionSystem::update(deltaTime);
+            SScriptsSystem::update(deltaTime);
+
+            m_window->clear();
+
+            SRenderSystem::update(*m_window, deltaTime);
+            m_window->display();
         }
     }
 

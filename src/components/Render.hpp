@@ -7,6 +7,8 @@
 #include <entt/resource/resource.hpp>
 #include <utility>
 
+#include "Common.hpp"
+#include "Logger.hpp"
 #include "ResourceManager.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
 #include "SFML/Graphics/Sprite.hpp"
@@ -72,7 +74,11 @@ namespace game {
             sf::Time m_timeAccumulated = sf::Time::Zero;
 
             FrameControl(AnimatedFrames frames, bool loop)
-                : m_frames(std::move(frames)), m_frameIndex(0), m_frameCount(m_frames.frames.size()), m_loop(loop) {}
+                : m_frames(std::move(frames)), m_frameIndex(0), m_frameCount(m_frames.frames.size()), m_loop(loop) {
+                if (m_frames.frames.empty()) {
+                    getLogger().logError("AnimatedFrames is empty. Is this a desired behavior?");
+                }
+            }
             void update(sf::Time deltaTime);
             void nextFrame();
             [[nodiscard]] entt::resource<Texture> getCurrentFrame() const;

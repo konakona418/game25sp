@@ -65,6 +65,8 @@ namespace game {
         void schedule(const Task& task);
         void schedule(std::function<void()> task);
 
+        [[nodiscard]] bool isBusy() const;
+
         template <typename Fn, std::enable_if_t<std::is_invocable_v<Fn>>>
         void schedule(Fn&& task) {
             schedule(std::function<void()>(std::forward<Fn>(task)));

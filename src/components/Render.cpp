@@ -12,9 +12,9 @@ void game::CSpriteRenderComponent::update(
     // this is not even a temporary solution.
     if (!m_sprite.has_value()) {
         if (m_frame.texture->textureRect.has_value()) {
-            m_sprite = sf::Sprite(m_frame.texture->texture, m_frame.texture->textureRect.value());
+            m_sprite = sf::Sprite(m_frame.texture->rawTextureRef->texture, m_frame.texture->textureRect.value());
         } else {
-            m_sprite = sf::Sprite(m_frame.texture->texture);
+            m_sprite = sf::Sprite(m_frame.texture->rawTextureRef->texture);
         }
     }
     m_sprite->setPosition(position);
@@ -35,10 +35,10 @@ void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::
                                                   sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin) {
     if (!m_sprite.has_value()) {
         if (m_frameControl.getCurrentFrame()->textureRect.has_value()) {
-            m_sprite = sf::Sprite(m_frameControl.getCurrentFrame()->texture,
+            m_sprite = sf::Sprite(m_frameControl.getCurrentFrame()->rawTextureRef->texture,
                 m_frameControl.getCurrentFrame()->textureRect.value());
         } else {
-            m_sprite = sf::Sprite(m_frameControl.getCurrentFrame()->texture);
+            m_sprite = sf::Sprite(m_frameControl.getCurrentFrame()->rawTextureRef->texture);
         }
     }
 
@@ -46,8 +46,9 @@ void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::
     m_sprite->setScale(scale);
     m_sprite->setOrigin(origin);
 
+    m_frameControl.update(deltaTime);
     const auto currentFrame = m_frameControl.getCurrentFrame();
-    m_sprite->setTexture(currentFrame->texture);
+    m_sprite->setTexture(currentFrame->rawTextureRef->texture);
 
     auto textureRect = m_frameControl.getCurrentFrame()->textureRect;
     if (textureRect.has_value() &&
@@ -60,12 +61,17 @@ void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::
 }
 
 void game::CAnimatedSpriteRenderComponent::FrameControl::update(const sf::Time deltaTime) {
-    const auto totalTime = deltaTime + m_timeAccumulated;
-    const auto frameOffset = static_cast<size_t>(std::floorf(totalTime / m_frames.duration));
+    /*const auto totalTime = deltaTime + m_timeAccumulated;
+    const auto frameOffset = static_cast<size_t>(std::roundf(totalTime / m_frames.duration));
+    // getLogger().logDebug("FrameControl::update: " + std::to_string(frameOffset));
     for (size_t i = 0; i < frameOffset; i++) {
         nextFrame();
     }
-    m_timeAccumulated = totalTime - m_frames.duration * static_cast<float>(frameOffset);
+    m_timeAccumulated = totalTime - m_frames.duration * static_cast<float>(frameOffset);*/
+    m_timeAccumulated += deltaTime;
+    auto offset = static_cast<size_t>(std::roundf(m_timeAccumulated / m_frames.duration));
+    m_frameIndex = offset % m_frameCount;
+    //getLogger().logDebug("FrameControl::update: " + std::to_string(deltaTime.asMilliseconds()));
 }
 
 void game::CAnimatedSpriteRenderComponent::FrameControl::nextFrame() {
@@ -103,7 +109,7 @@ void game::CTiledRenderComponent::update(sf::RenderTarget& target, sf::Time delt
     for (auto& tileItem : m_tileControl.m_tileItemList) {
         auto tile = m_tileControl.getTileById(tileItem.tileId);
         if (!tileItem.sprite.has_value()) {
-            tileItem.sprite = sf::Sprite(tile.frames.frames[0]->texture);
+            tileItem.sprite = sf::Sprite(tile.frames.frames[0]->rawTextureRef->texture);
             tileItem.sprite->setTextureRect(tile.frames.frames[0]->textureRect.value());
             // todo: implement tile animation
             tileItem.sprite->setOrigin(m_tileControl.m_baseTilePixelSize * 0.5f);

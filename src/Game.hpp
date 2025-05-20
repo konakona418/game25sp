@@ -8,7 +8,9 @@
 #include <entt/entt.hpp>
 
 #include "ResourceManager.hpp"
+#include "SFML/System/String.hpp"
 #include "SFML/System/Time.hpp"
+#include "SFML/Window/Keyboard.hpp"
 
 namespace game {
     class Logger;
@@ -17,6 +19,30 @@ namespace game {
 
     class Game {
     public:
+        struct KeyBoard {
+            struct Key {
+                bool isPressed { false };
+                bool isReleased { false };
+            };
+            KeyBoard() = default;
+            void press(sf::Keyboard::Key key);
+            void release(sf::Keyboard::Key key);
+
+            bool isKeyPressed(sf::Keyboard::Key key) const;
+            bool isKeyReleased(sf::Keyboard::Key key) const;
+        private:
+            std::unordered_map<sf::Keyboard::Key, Key> m_keys;
+        };
+
+        struct Config {
+            Config() = default;
+
+            sf::Vector2u windowSize { 800, 600 };
+            sf::String windowTitle { "NWPU C++ sp25" };
+            int fps { 60 };
+            bool vsync { true };
+        };
+
         static Game& createGame();
 
         ~Game();
@@ -31,6 +57,10 @@ namespace game {
 
         ResourceManager& getResourceManager();
 
+        entt::dispatcher& getEventDispatcher();
+
+        KeyBoard& getKeyboard();
+
         static Game& getInstance();
 
         static bool isInitialized();
@@ -38,6 +68,10 @@ namespace game {
         Window& getWindow();
 
         [[nodiscard]] bool isRunning() const;
+
+        [[nodiscard]] Config getConfig() const;
+
+        void setConfig(const Config& config);
 
         template <typename Fn, std::enable_if_t<std::is_invocable_v<Fn>, int> = 0>
         static void runBlocking(Fn fn) {
@@ -54,12 +88,12 @@ namespace game {
             getInstance().runAsyncImpl(std::function<void()>(fn));
         }
 
-        static sf::Time getDeltaTime();
-
     private:
         entt::registry m_registry;
+        entt::dispatcher m_dispatcher;
         uint32_t m_hardwareConcurrency;
         bool m_isRunning { false };
+        Config m_config;
 
         Game(Game&& other) noexcept = default;
         Game& operator=(Game&& other) noexcept = default;

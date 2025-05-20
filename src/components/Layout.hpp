@@ -7,6 +7,8 @@
 
 #include <entt/entity/entity.hpp>
 
+#include "Common.hpp"
+#include "Logger.hpp"
 #include "SFML/Graphics.hpp"
 
 
@@ -14,11 +16,17 @@ namespace game {
     struct CHasLayout {};
 
     struct CLocalTransform {
+        /**
+         * When using any of the methods below,
+         * remember to mark the entity as dirty.
+         */
+
         CLocalTransform() = default;
         explicit CLocalTransform(const sf::Vector2f position) : m_position(position) {}
 
         void setPosition(const sf::Vector2f position) { m_position = position; }
         [[nodiscard]] sf::Vector2f getPosition() const { return m_position; }
+        void move(const sf::Vector2f offset) { m_position += offset; }
 
         void setSize(const sf::Vector2f size) { m_size = size; }
         [[nodiscard]] sf::Vector2f getSize() const { return m_size; }

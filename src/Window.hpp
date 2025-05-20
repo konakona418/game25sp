@@ -25,15 +25,25 @@ namespace game {
 
         ~Window() = default;
 
-        void setPreferences(int fps, bool vsync) const;
+        void setVideoPreferences(int fps, bool vsync);
+
+        void setWindowTitle(sf::String title);
+
+        void setWindowSize(const sf::Vector2u& windowSize);
 
         void run();
 
     private:
+        struct VideoPreference {
+            int fps = 60;
+            bool vsync = false;
+        };
+
         std::unique_ptr<sf::RenderWindow> m_window { nullptr };
         sf::Vector2u m_windowSize;
         sf::String m_windowTitle = u8"Game";
         double m_aspectRatio { 0 };
+        VideoPreference m_videoPreference;
 
         void keepViewportScale();
     };

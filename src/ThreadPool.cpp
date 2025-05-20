@@ -68,6 +68,10 @@ void game::ThreadPool::schedule(std::function<void()> task) {
     schedule(Task(std::move(task)));
 }
 
+bool game::ThreadPool::isBusy() const {
+    return !m_tasks.empty();
+}
+
 void game::ThreadPool::run() {
     getLogger().logDebug("ThreadPool::run");
     m_cancellationToken.exchange(true, std::memory_order_relaxed);

@@ -37,22 +37,40 @@ namespace game {
 
     using BinaryFileCache = entt::resource_cache<BinaryFile, BinaryFileLoader>;
 
-    struct Texture {
+    struct RawTexture {
         sf::Texture texture;
+
+        explicit RawTexture(const std::string& filename) : texture(filename) {};
+    };
+
+    struct RawTextureLoader {
+        using result_type = std::shared_ptr<RawTexture>;
+
+        result_type operator()(const std::string& name) const {
+            return std::make_shared<RawTexture>(name);
+        }
+    };
+
+    using RawTextureCache = entt::resource_cache<RawTexture, RawTextureLoader>;
+
+    struct Texture {
+        entt::resource<RawTexture> rawTextureRef;
         std::optional<sf::IntRect> textureRect { std::nullopt };
 
-        explicit Texture(const std::string& filename) : texture(filename) {};
-        Texture(const std::string& filename, const sf::IntRect& rect) : texture(filename), textureRect(rect) {};
+        explicit Texture(entt::resource<RawTexture> texture) : rawTextureRef(std::move(texture)) {};
+
+        Texture(entt::resource<RawTexture> texture, const sf::IntRect& rect) : rawTextureRef(std::move(texture)), textureRect(rect) {};
     };
 
     struct TextureLoader {
         using result_type = std::shared_ptr<Texture>;
-        result_type operator()(const std::string& name) const {
-            return std::make_shared<Texture>(name);
+
+        result_type operator()(entt::resource<RawTexture> texture) const {
+            return std::make_shared<Texture>(std::move(texture));
         }
 
-        result_type operator()(const std::string& name, const sf::IntRect& rect) const {
-            return std::make_shared<Texture>(name, rect);
+        result_type operator()(entt::resource<RawTexture> texture, const sf::IntRect& rect) const {
+            return std::make_shared<Texture>(std::move(texture), rect);
         }
     };
 
@@ -68,6 +86,11 @@ namespace game {
 
         static TextureCache& getTextureCache() {
             static TextureCache cache;
+            return cache;
+        }
+
+        static RawTextureCache& getRawTextureCache() {
+            static RawTextureCache cache;
             return cache;
         }
     };
