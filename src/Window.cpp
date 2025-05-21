@@ -78,7 +78,52 @@ namespace game {
         }
     }
 
-    void Window::keepViewportScale() {
-        // todo: implement this
+    // letterboxing code from:
+    // https://github.com/SFML/SFML/wiki/Source%3A-Letterbox-effect-using-a-view
+    sf::View getLetterboxView(sf::View view, sf::Vector2u windowSize) {
+
+        // Compares the aspect ratio of the window to the aspect ratio of the view,
+        // and sets the view's viewport accordingly in order to achieve a letterbox effect.
+        // A new view (with a new viewport set) is returned.
+
+        float windowRatio = static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y);
+        float viewRatio = view.getSize().x / view.getSize().y;
+        float sizeX = 1;
+        float sizeY = 1;
+        float posX = 0;
+        float posY = 0;
+
+        bool horizontalSpacing = true;
+        if (windowRatio < viewRatio)
+            horizontalSpacing = false;
+
+        // If horizontalSpacing is true, the black bars will appear on the left and right side.
+        // Otherwise, the black bars will appear on the top and bottom.
+
+        if (horizontalSpacing) {
+            sizeX = viewRatio / windowRatio;
+            posX = (1 - sizeX) / 2.f;
+        }
+
+        else {
+            sizeY = windowRatio / viewRatio;
+            posY = (1 - sizeY) / 2.f;
+        }
+
+        std::stringstream ss;
+        ss << "Letterboxing viewport set, with: ";
+        ss << "posX: " << posX << ", posY: " << posY << ", sizeX: " << sizeX << ", sizeY: " << sizeY;
+        getLogger().logDebug(ss.str());
+
+        view.setViewport( sf::FloatRect({posX, posY}, {sizeX, sizeY}) );
+
+        return view;
+    }
+
+    void Window::keepViewportScale() const {
+        auto view = m_window->getView();
+        auto windowSize = m_window->getSize();
+
+        m_window->setView(getLetterboxView(view, windowSize));
     }
 } // game

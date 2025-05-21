@@ -12,13 +12,13 @@
 namespace game {
     class Window {
     public:
-        Window() : m_windowSize(800, 600) {};
+        Window() : m_windowSize(800, 600), m_aspectRatio(800.f / 600.f) {};
 
         explicit Window(const sf::Vector2u& windowSize)
-            : m_windowSize(windowSize), m_aspectRatio(static_cast<double>(windowSize.x) / static_cast<double>(windowSize.y)) {}
+            : m_windowSize(windowSize), m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)) {}
 
         Window(const sf::Vector2u& windowSize, sf::String title)
-            : m_windowSize(windowSize), m_aspectRatio(static_cast<double>(windowSize.x) / static_cast<double>(windowSize.y)), m_windowTitle(std::move(title)) {}
+            : m_windowSize(windowSize), m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)), m_windowTitle(std::move(title)) {}
 
         Window(const Window&) = delete;
         Window& operator=(const Window&) = delete;
@@ -42,10 +42,10 @@ namespace game {
         std::unique_ptr<sf::RenderWindow> m_window { nullptr };
         sf::Vector2u m_windowSize;
         sf::String m_windowTitle = u8"Game";
-        double m_aspectRatio { 0 };
+        float m_aspectRatio { 0 };
         VideoPreference m_videoPreference;
 
-        void keepViewportScale();
+        void keepViewportScale() const;
     };
 } // game
 
