@@ -103,7 +103,6 @@ namespace game {
 
         void init();
         void cleanup();
-        void cleanupResources();
         void runAsyncImpl(std::function<void()> fn);
     };
 
