@@ -10,7 +10,7 @@ namespace game {
     class Game;
     class Logger;
     class ThreadPool;
-    class ResourceManager;
+    struct ResourceManager;
 
     extern Game& getGame();
     extern Logger& getLogger();

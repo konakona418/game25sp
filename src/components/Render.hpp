@@ -15,6 +15,8 @@
 #include "SFML/System/Time.hpp"
 
 namespace game {
+    struct CGlobalTransform;
+
     struct CRenderComponent {};
 
     // specify the layer for the component to be rendered
@@ -43,7 +45,7 @@ namespace game {
         void setFrame(SpriteFrame frame) { m_frame = std::move(frame); }
         [[nodiscard]] SpriteFrame getFrame() const { return m_frame; }
 
-        void update(sf::RenderTarget& target, sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin);
+        void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform);
     private:
         SpriteFrame m_frame;
         std::optional<sf::Sprite> m_sprite;
@@ -52,6 +54,7 @@ namespace game {
     struct CTextRenderComponent {};
 
     struct AnimatedFrames {
+        entt::hashed_string animationName { "<anonymous>" };
         std::vector<entt::resource<Texture>> frames;
         bool loop = true;
         sf::Time duration;
@@ -60,10 +63,28 @@ namespace game {
     struct CAnimatedSpriteRenderComponent {
         explicit CAnimatedSpriteRenderComponent(AnimatedFrames frames, const bool loop = true)
             : m_frameControl(std::move(frames), loop) {}
-        void setFrames(AnimatedFrames frames) { m_frameControl.m_frames = std::move(frames); }
+
+        /**
+         * This may cause unintended behavior.
+         * Refer to: setFrames()
+         * @param frames
+         */
+        void setFramesForced(AnimatedFrames frames) {
+            m_frameControl = FrameControl { std::move(frames), m_frameControl.m_loop };
+        }
+
+        /**
+         * Only change the frames if the animation name is different.
+         * @param frames
+         */
+        void setFrames (AnimatedFrames frames) {
+            if (m_frameControl.m_frames.animationName != frames.animationName) {
+                m_frameControl = FrameControl { std::move(frames), m_frameControl.m_loop };
+            }
+        }
+
         [[nodiscard]] AnimatedFrames getFrames() const { return m_frameControl.m_frames; }
-        void update(sf::RenderTarget& target, sf::Time deltaTime,
-                    sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin);
+        void update(sf::RenderTarget& target, sf::Time deltaTime, const CGlobalTransform& globalTransform);
 
     private:
         struct FrameControl {

@@ -13,9 +13,9 @@ namespace game {
     struct CParent;
     struct CNode;
 
-    class SScenePositionManagementSystem {
+    class SceneTreeUtils {
     public:
-        SScenePositionManagementSystem() = default;
+        SceneTreeUtils() = default;
 
         /**
          * note that this function just initializes the entity with the scene tree components,
@@ -42,6 +42,8 @@ namespace game {
         static entt::entity markAsCleanRecurse(entt::entity entity);
 
         static bool isDirty(entt::entity entity);
+
+        static void unmount(entt::entity entity);
     };
 
     class SScenePositionUpdateSystem {
@@ -59,6 +61,15 @@ namespace game {
         static void markEntityAsClean(entt::entity entity);
     private:
         static void calculateLayout(entt::entity entity);
+    };
+
+    class SSceneUnmountSystem {
+    public:
+        SSceneUnmountSystem() = default;
+
+        static void update();
+
+        static void unmount(entt::entity entity);
     };
 }
 

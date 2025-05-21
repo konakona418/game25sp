@@ -73,6 +73,8 @@ namespace game {
 
             SRenderSystem::update(*m_window, deltaTime);
             m_window->display();
+
+            SSceneUnmountSystem::update();
         }
     }
 

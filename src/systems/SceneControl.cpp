@@ -9,7 +9,7 @@
 #include "components/SceneTree.hpp"
 #include "components/Layout.hpp"
 
-entt::entity game::SScenePositionManagementSystem::attachSceneTreeComponents(entt::entity entity) {
+entt::entity game::SceneTreeUtils::attachSceneTreeComponents(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (registry.any_of<CNode>(entity)) {
@@ -25,8 +25,12 @@ entt::entity game::SScenePositionManagementSystem::attachSceneTreeComponents(ent
     return entity;
 }
 
-entt::entity game::SScenePositionManagementSystem::detachSceneTreeComponents(entt::entity entity) {
+entt::entity game::SceneTreeUtils::detachSceneTreeComponents(entt::entity entity) {
     auto& registry = game::getRegistry();
+
+    if (registry.any_of<CSceneElementNeedsUpdate>(entity)) {
+        markAsCleanRecurse(entity);
+    }
 
     auto parent = registry.get<CParent>(entity);
     if (parent.getParent() != entt::null) {
@@ -43,14 +47,10 @@ entt::entity game::SScenePositionManagementSystem::detachSceneTreeComponents(ent
     registry.remove<CParent>(entity);
     registry.remove<CChild>(entity);
 
-    if (registry.any_of<CSceneElementNeedsUpdate>(entity)) {
-        markAsCleanRecurse(entity);
-    }
-
     return entity;
 }
 
-entt::entity game::SScenePositionManagementSystem::attachChild(const entt::entity parent, const entt::entity child) {
+entt::entity game::SceneTreeUtils::attachChild(const entt::entity parent, const entt::entity child) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -73,7 +73,7 @@ entt::entity game::SScenePositionManagementSystem::attachChild(const entt::entit
     return child;
 }
 
-entt::entity game::SScenePositionManagementSystem::detachChild(const entt::entity parent, const entt::entity child) {
+entt::entity game::SceneTreeUtils::detachChild(const entt::entity parent, const entt::entity child) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -91,7 +91,7 @@ entt::entity game::SScenePositionManagementSystem::detachChild(const entt::entit
     return child;
 }
 
-entt::entity game::SScenePositionManagementSystem::attachParent(entt::entity child, entt::entity parent) {
+entt::entity game::SceneTreeUtils::attachParent(entt::entity child, entt::entity parent) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -111,7 +111,7 @@ entt::entity game::SScenePositionManagementSystem::attachParent(entt::entity chi
     return child;
 }
 
-entt::entity game::SScenePositionManagementSystem::detachParent(entt::entity child, entt::entity parent) {
+entt::entity game::SceneTreeUtils::detachParent(entt::entity child, entt::entity parent) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CChild>(parent)) {
@@ -126,7 +126,7 @@ entt::entity game::SScenePositionManagementSystem::detachParent(entt::entity chi
     return child;
 }
 
-entt::entity game::SScenePositionManagementSystem::markAsDirty(entt::entity entity) {
+entt::entity game::SceneTreeUtils::markAsDirty(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (registry.any_of<CSceneElementNeedsUpdate>(entity)) {
@@ -144,7 +144,7 @@ entt::entity game::SScenePositionManagementSystem::markAsDirty(entt::entity enti
     return entity;
 }
 
-entt::entity game::SScenePositionManagementSystem::markAsClean(entt::entity entity) {
+entt::entity game::SceneTreeUtils::markAsClean(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (!registry.any_of<CSceneElementNeedsUpdate>(entity)) {
@@ -157,7 +157,7 @@ entt::entity game::SScenePositionManagementSystem::markAsClean(entt::entity enti
     return entity;
 }
 
-entt::entity game::SScenePositionManagementSystem::markAsCleanRecurse(entt::entity entity) {
+entt::entity game::SceneTreeUtils::markAsCleanRecurse(entt::entity entity) {
     auto& registry = game::getRegistry();
     if (registry.any_of<CSceneElementNeedsUpdate>(entity)) {
         // only mark as clean if it's dirty
@@ -171,9 +171,31 @@ entt::entity game::SScenePositionManagementSystem::markAsCleanRecurse(entt::enti
     return entity;
 }
 
-bool game::SScenePositionManagementSystem::isDirty(entt::entity entity) {
+bool game::SceneTreeUtils::isDirty(entt::entity entity) {
     auto& registry = game::getRegistry();
     return registry.any_of<CSceneElementNeedsUpdate>(entity);
+}
+
+void game::SceneTreeUtils::unmount(entt::entity entity) {
+    auto& registry = game::getRegistry();
+
+    if (!registry.any_of<CNode>(entity)) {
+        throw std::runtime_error("Entity does not have CNode component.");
+    }
+
+    if (!registry.valid(entity)) {
+        throw std::runtime_error("Entity is invalid.");
+    }
+
+    for (const auto child : registry.get<CChild>(entity).getChildren()) {
+        unmount(child);
+    }
+
+    if (registry.any_of<CNode>(entity)) {
+        detachSceneTreeComponents(entity);
+    }
+    registry.destroy(entity);
+    getLogger().logDebug(Logger::concatLineFile("invoked SceneTreeUtils::unmount()", __LINE__, __FILE_NAME__));
 }
 
 void game::SScenePositionUpdateSystem::update() {
@@ -241,11 +263,11 @@ void game::SScenePositionUpdateSystem::update() {
 }
 
 void game::SScenePositionUpdateSystem::markEntityAsDirty(const entt::entity entity) {
-    SScenePositionManagementSystem::markAsDirty(entity);
+    SceneTreeUtils::markAsDirty(entity);
 }
 
 void game::SScenePositionUpdateSystem::markEntityAsClean(entt::entity entity) {
-    SScenePositionManagementSystem::markAsClean(entity);
+    SceneTreeUtils::markAsClean(entity);
 }
 
 void game::SScenePositionUpdateSystem::calculateLayout(entt::entity entity) {
@@ -289,4 +311,16 @@ void game::SScenePositionUpdateSystem::calculateLayout(entt::entity entity) {
     auto parentScale = parentGlobalTransform.getScale();
     auto relativeScale = sf::Vector2f { absoluteScale.x * parentScale.x, absoluteScale.y * parentScale.y};
     registry.get<CGlobalTransform>(entity).setScale(relativeScale);
+}
+
+void game::SSceneUnmountSystem::update() {
+    auto& registry = game::getRegistry();
+
+    for (const auto entity : registry.view<CUnmount>()) {
+        unmount(entity);
+    }
+}
+
+void game::SSceneUnmountSystem::unmount(entt::entity entity) {
+    SceneTreeUtils::unmount(entity);
 }

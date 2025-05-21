@@ -5,10 +5,10 @@
 #include "Render.hpp"
 
 #include "Common.hpp"
+#include "Layout.hpp"
 #include "Logger.hpp"
 
-void game::CSpriteRenderComponent::update(
-    sf::RenderTarget& target, sf::Vector2f position, sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin) {
+void game::CSpriteRenderComponent::update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) {
     // this is not even a temporary solution.
     if (!m_sprite.has_value()) {
         if (m_frame.texture->textureRect.has_value()) {
@@ -17,9 +17,12 @@ void game::CSpriteRenderComponent::update(
             m_sprite = sf::Sprite(m_frame.texture->rawTextureRef->texture);
         }
     }
-    m_sprite->setPosition(position);
-    m_sprite->setScale(scale);
-    m_sprite->setOrigin(origin);
+
+    m_sprite->setPosition(globalTransform.getPosition());
+    m_sprite->setScale(globalTransform.getScale());
+    m_sprite->setOrigin(globalTransform.getOrigin());
+
+    auto size = globalTransform.getSize();
 
     auto textureRect = m_frame.texture->textureRect;
     if (textureRect.has_value() &&
@@ -31,8 +34,7 @@ void game::CSpriteRenderComponent::update(
     target.draw(*m_sprite);
 }
 
-void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::Time deltaTime, sf::Vector2f position,
-                                                  sf::Vector2f size, sf::Vector2f scale, sf::Vector2f origin) {
+void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::Time deltaTime, const CGlobalTransform& globalTransform) {
     if (!m_sprite.has_value()) {
         if (m_frameControl.getCurrentFrame()->textureRect.has_value()) {
             m_sprite = sf::Sprite(m_frameControl.getCurrentFrame()->rawTextureRef->texture,
@@ -42,9 +44,11 @@ void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::
         }
     }
 
-    m_sprite->setPosition(position);
-    m_sprite->setScale(scale);
-    m_sprite->setOrigin(origin);
+    m_sprite->setPosition(globalTransform.getPosition());
+    m_sprite->setScale(globalTransform.getScale());
+    m_sprite->setOrigin(globalTransform.getOrigin());
+
+    auto size = globalTransform.getSize();
 
     m_frameControl.update(deltaTime);
     const auto currentFrame = m_frameControl.getCurrentFrame();

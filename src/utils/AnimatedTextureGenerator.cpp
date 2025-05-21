@@ -49,6 +49,7 @@ namespace game {
 
         animatedFrames.duration = m_duration;
         animatedFrames.loop = true;
+        animatedFrames.animationName = entt::hashed_string { resourceName.c_str() };
         return animatedFrames;
     }
 } // game

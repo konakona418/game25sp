@@ -56,6 +56,13 @@ void game::Game::cleanup() {
     ctx.erase<Logger>();
 }
 
+void game::Game::cleanupResources() {
+    getLogger().logInfo("Cleaning up resource manager");
+    ResourceManager::getTextureCache().clear();
+    ResourceManager::getBinaryFileCache().clear();
+    ResourceManager::getRawTextureCache().clear();
+}
+
 void game::Game::runAsyncImpl(std::function<void()> fn) {
     getThreadPool().schedule(std::move(fn));
 }

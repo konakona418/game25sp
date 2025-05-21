@@ -9,6 +9,8 @@
 
 namespace game {
     struct CNode {};
+    struct CUnmount {};
+
     struct CParent {
         CParent() = default;
         explicit CParent(const entt::entity parent) : m_parent(parent) {}

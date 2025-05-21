@@ -18,6 +18,7 @@ namespace game {
     class Window;
 
     class Game {
+        friend class Window;
     public:
         struct KeyBoard {
             struct Key {
@@ -38,7 +39,7 @@ namespace game {
             Config() = default;
 
             sf::Vector2u windowSize { 800, 600 };
-            sf::String windowTitle { "NWPU C++ sp25" };
+            sf::String windowTitle { "Game" };
             int fps { 60 };
             bool vsync { true };
         };
@@ -102,6 +103,7 @@ namespace game {
 
         void init();
         void cleanup();
+        void cleanupResources();
         void runAsyncImpl(std::function<void()> fn);
     };
 
