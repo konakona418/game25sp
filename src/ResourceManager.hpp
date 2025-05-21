@@ -29,9 +29,9 @@ namespace game {
     };
 
     struct BinaryFileLoader {
-        using result_type = BinaryFile;
+        using result_type = std::shared_ptr<BinaryFile>;
         result_type operator()(const std::string& name) const {
-            return result_type { name };
+            return std::make_shared<BinaryFile>(name);
         }
     };
 

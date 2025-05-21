@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "components/Render.hpp"
+#include "utils/LazyLoader.hpp"
 
 
 namespace game::prefab {

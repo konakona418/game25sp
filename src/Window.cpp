@@ -9,6 +9,7 @@
 #include "Logger.hpp"
 #include "ThreadPool.hpp"
 #include "systems/CollisionControl.hpp"
+#include "systems/MusicControl.hpp"
 #include "systems/RenderControl.hpp"
 #include "systems/SceneControl.hpp"
 #include "systems/ScriptsControl.hpp"
@@ -68,6 +69,8 @@ namespace game {
             SScenePositionUpdateSystem::update();
             SCollisionSystem::update(deltaTime);
             SScriptsSystem::update(deltaTime);
+
+            SMusicSystem::update();
 
             m_window->clear();
 

@@ -38,7 +38,7 @@ namespace game {
         struct Config {
             Config() = default;
 
-            sf::Vector2u windowSize { 800, 600 };
+            sf::Vector2u windowSize { 1280, 720 };
             sf::String windowTitle { "Game" };
             int fps { 60 };
             bool vsync { true };

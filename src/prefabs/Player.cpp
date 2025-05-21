@@ -16,7 +16,7 @@ auto onKeyPress(entt::entity entity, sf::Time deltaTime) -> void {
     auto& registry = game::getRegistry();
     auto& keyboard = game::getGame().getKeyboard();
 
-    sf::Vector2f velocity = sf::Vector2f {0, 0};
+    sf::Vector2f velocity = sf::Vector2f{0, 0};
     if (keyboard.isKeyPressed(sf::Keyboard::Key::Up)) {
         velocity.y = -1;
     }
@@ -33,14 +33,16 @@ auto onKeyPress(entt::entity entity, sf::Time deltaTime) -> void {
     auto& player = registry.get<game::prefab::GPlayerComponent>(entity);
     if (velocity.x < 0) {
         player.flipH = true;
-    } else if (velocity.x > 0) {
+    }
+    else if (velocity.x > 0) {
         player.flipH = false;
     }
 
     auto& animatedSprite = registry.get<game::CAnimatedSpriteRenderComponent>(entity);
     if (velocity.lengthSquared() > 0) {
         animatedSprite.setFrames(player.animations["walk"]);
-    } else {
+    }
+    else {
         animatedSprite.setFrames(player.animations["idle"]);
     }
 
@@ -77,7 +79,7 @@ game::prefab::Player::Player() {
 
     auto animations = loadAnimationResources();
     registry.emplace<game::CAnimatedSpriteRenderComponent>(entity, animations["idle"], true);
-    entt::delegate<void(entt::entity, sf::Time)> delegate {};
+    entt::delegate<void(entt::entity, sf::Time)> delegate{};
 
     delegate.connect<&onKeyPress>();
     registry.emplace<game::CScriptsComponent>(entity, delegate);
@@ -86,20 +88,26 @@ game::prefab::Player::Player() {
 }
 
 std::unordered_map<std::string, game::AnimatedFrames> game::prefab::Player::loadAnimationResources() {
-    std::unordered_map<std::string, AnimatedFrames> animations;
+    static Lazy<std::unordered_map<std::string, AnimatedFrames>> animations {
+        [] {
+            std::unordered_map<std::string, AnimatedFrames> res;
+            res.emplace("idle",
+                               game::AnimatedTextureGenerator()
+                               .setOffset(sf::Vector2f{0, 0})
+                               .setPlacement(sf::Vector2u{1, 6})
+                               .setSize(sf::Vector2f{32, 48})
+                               .setDuration(sf::seconds(0.1))
+                               .generate("playerIdle", "idle.png"));
+            res.emplace("walk",
+                               game::AnimatedTextureGenerator()
+                               .setOffset(sf::Vector2f{0, 0})
+                               .setPlacement(sf::Vector2u{1, 8})
+                               .setSize(sf::Vector2f{32, 48})
+                               .setDuration(sf::seconds(0.1))
+                               .generate("playerWalk", "walk.png"));
+            return res;
+        }
+    };
 
-    animations.emplace("idle", game::AnimatedTextureGenerator()
-        .setOffset(sf::Vector2f {0, 0})
-        .setPlacement(sf::Vector2u {1, 6})
-        .setSize(sf::Vector2f { 32, 48 })
-        .setDuration(sf::seconds(0.1))
-        .generate("playerIdle", "idle.png"));
-    animations.emplace("walk", game::AnimatedTextureGenerator()
-            .setOffset(sf::Vector2f {0, 0})
-            .setPlacement(sf::Vector2u {1, 8})
-            .setSize(sf::Vector2f { 32, 48 })
-            .setDuration(sf::seconds(0.1))
-            .generate("playerWalk", "walk.png"));
-
-    return animations;
+    return *animations;
 }

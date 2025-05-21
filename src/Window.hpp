@@ -12,7 +12,7 @@
 namespace game {
     class Window {
     public:
-        Window() : m_windowSize(800, 600), m_aspectRatio(800.f / 600.f) {};
+        Window() : m_windowSize(1280.f, 720.f), m_aspectRatio(1280.f / 720.f) {};
 
         explicit Window(const sf::Vector2u& windowSize)
             : m_windowSize(windowSize), m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)) {}

@@ -16,5 +16,5 @@ endif()
 
 add_executable(game25sp main.cpp ${SOURCES} ${HEADERS} ${TESTS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics EnTT::EnTT)
+target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Audio EnTT::EnTT)
 
