@@ -27,6 +27,8 @@ namespace game::prefab {
         static Player create();
         void detach() const;
 
+        [[nodiscard]] entt::entity getEntity() const { return m_entity; }
+
     private:
         static constexpr size_t RENDER_LAYER = 16;
         entt::entity m_entity;

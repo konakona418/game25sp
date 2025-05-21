@@ -5,7 +5,6 @@
 #include "Player.hpp"
 
 #include "Game.hpp"
-#include "ThreadPool.hpp"
 #include "components/Layout.hpp"
 #include "components/Scripts.hpp"
 #include "systems/MovementControl.hpp"
@@ -87,25 +86,20 @@ game::prefab::Player::Player() {
 }
 
 std::unordered_map<std::string, game::AnimatedFrames> game::prefab::Player::loadAnimationResources() {
-    auto& tp = game::getThreadPool();
-    std::vector<game::Task> tasks;
     std::unordered_map<std::string, AnimatedFrames> animations;
-    tasks.emplace_back([&animations] {
-        animations.emplace("idle", game::AnimatedTextureGenerator()
+
+    animations.emplace("idle", game::AnimatedTextureGenerator()
         .setOffset(sf::Vector2f {0, 0})
         .setPlacement(sf::Vector2u {1, 6})
         .setSize(sf::Vector2f { 32, 48 })
         .setDuration(sf::seconds(0.1))
         .generate("playerIdle", "idle.png"));
-    });
-    tasks.emplace_back([&animations] {
-        animations.emplace("walk", game::AnimatedTextureGenerator()
+    animations.emplace("walk", game::AnimatedTextureGenerator()
             .setOffset(sf::Vector2f {0, 0})
             .setPlacement(sf::Vector2u {1, 8})
             .setSize(sf::Vector2f { 32, 48 })
             .setDuration(sf::seconds(0.1))
             .generate("playerWalk", "walk.png"));
-    });
-    tp.waitForAll(tasks);
+
     return animations;
 }

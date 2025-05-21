@@ -66,7 +66,6 @@ entt::entity game::SceneTreeUtils::attachChild(const entt::entity parent, const 
         detachParent(child, registry.get<CParent>(child).getParent());
     }
     registry.get<CParent>(child).setParent(parent);
-    registry.get<CChild>(registry.get<CParent>(child).getParent()).addChild(child);
 
     markAsDirty(child);
 
@@ -187,7 +186,12 @@ void game::SceneTreeUtils::unmount(entt::entity entity) {
         throw std::runtime_error("Entity is invalid.");
     }
 
-    for (const auto child : registry.get<CChild>(entity).getChildren()) {
+    // life cycle!!
+    // the problem is, unmounting a child will cause all the components to be destroyed
+    // and if we use inline iteration, as we hold a **reference** to the children list,
+    // it will cause the iterator to be invalidated!
+    const auto children = registry.get<CChild>(entity).getChildren();
+    for (const auto child : children) {
         unmount(child);
     }
 

@@ -52,6 +52,8 @@ void game::Game::cleanup() {
     ctx.erase<ResourceManager>();
     ctx.erase<ThreadPool>();
 
+    cleanupResources();
+
     getLogger().logInfo("Closing logger");
     ctx.erase<Logger>();
 }
