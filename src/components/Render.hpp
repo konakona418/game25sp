@@ -29,6 +29,16 @@ namespace game {
         size_t m_layer;
     };
 
+    // specify the order for the component to be rendered
+    struct CRenderOrderComponent {
+        CRenderOrderComponent() = default;
+        explicit CRenderOrderComponent(size_t order) : m_order(order) {}
+        [[nodiscard]] size_t getOrder() const { return m_order; }
+        void setOrder(size_t order) { m_order = order; }
+    private:
+        size_t m_order;
+    };
+
     struct CRenderTargetComponent {};
 
     struct SpriteFrame {
@@ -40,14 +50,18 @@ namespace game {
     };
 
     struct CSpriteRenderComponent {
-        explicit CSpriteRenderComponent(SpriteFrame frame): m_frame(std::move(frame)) {}
+        explicit CSpriteRenderComponent(SpriteFrame frame) {
+            m_frame = std::make_shared<SpriteFrame>(std::move(frame));
+        }
 
-        void setFrame(SpriteFrame frame) { m_frame = std::move(frame); }
-        [[nodiscard]] SpriteFrame getFrame() const { return m_frame; }
+        explicit CSpriteRenderComponent(std::shared_ptr<SpriteFrame> frame) : m_frame(std::move(frame)) {}
+
+        void setFrame(SpriteFrame frame) { m_frame = std::make_shared<SpriteFrame>(std::move(frame)); }
+        [[nodiscard]] std::shared_ptr<SpriteFrame> getFrame() const { return m_frame; }
 
         void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform);
     private:
-        SpriteFrame m_frame;
+        std::shared_ptr<SpriteFrame> m_frame;
         std::optional<sf::Sprite> m_sprite;
     };
 

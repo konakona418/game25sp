@@ -11,11 +11,14 @@
 void game::CSpriteRenderComponent::update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) {
     // this is not even a temporary solution.
     if (!m_sprite.has_value()) {
-        if (m_frame.texture->textureRect.has_value()) {
-            m_sprite = sf::Sprite(m_frame.texture->rawTextureRef->texture, m_frame.texture->textureRect.value());
+        if (m_frame->texture->textureRect.has_value()) {
+            m_sprite = sf::Sprite(m_frame->texture->rawTextureRef->texture, m_frame->texture->textureRect.value());
         } else {
-            m_sprite = sf::Sprite(m_frame.texture->rawTextureRef->texture);
+            m_sprite = sf::Sprite(m_frame->texture->rawTextureRef->texture);
         }
+        // without this line, some strange rendering bug occurs
+        // bug after adding this line, it just works fine, and I have no idea why.
+        return;
     }
 
     m_sprite->setPosition(globalTransform.getPosition());
@@ -24,7 +27,7 @@ void game::CSpriteRenderComponent::update(sf::RenderTarget& target, const CGloba
 
     auto size = globalTransform.getSize();
 
-    auto textureRect = m_frame.texture->textureRect;
+    auto textureRect = m_frame->texture->textureRect;
     if (textureRect.has_value() &&
         (textureRect.value().size.x >= static_cast<int>(size.x) && textureRect.value().size.y >= static_cast<int>(size.y))) {
         m_sprite->setTextureRect(textureRect.value());
@@ -42,6 +45,8 @@ void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::
         } else {
             m_sprite = sf::Sprite(m_frameControl.getCurrentFrame()->rawTextureRef->texture);
         }
+        // this is not necessary, just to keep behaviors consistent
+        return;
     }
 
     m_sprite->setPosition(globalTransform.getPosition());

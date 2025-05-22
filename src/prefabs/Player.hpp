@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 #include "components/Render.hpp"
-#include "utils/LazyLoader.hpp"
+#include "systems/SceneControl.hpp"
 
 
 namespace game::prefab {
@@ -23,16 +23,12 @@ namespace game::prefab {
             : animations(std::move(animations)) {};
     };
 
-    class Player {
+    class Player : public game::TreeLike {
     public:
         static Player create();
-        void detach() const;
-
-        [[nodiscard]] entt::entity getEntity() const { return m_entity; }
 
     private:
         static constexpr size_t RENDER_LAYER = 16;
-        entt::entity m_entity;
 
         Player();
         static std::unordered_map<std::string, AnimatedFrames> loadAnimationResources();

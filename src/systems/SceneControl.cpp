@@ -199,7 +199,9 @@ void game::SceneTreeUtils::unmount(entt::entity entity) {
         detachSceneTreeComponents(entity);
     }
     registry.destroy(entity);
-    getLogger().logDebug(Logger::concatLineFile("invoked SceneTreeUtils::unmount()", __LINE__, __FILE_NAME__));
+
+    /*getLogger().logDebug("invoked SceneTreeUtils::unmount() on entity "
+        + std::to_string(static_cast<entt::id_type>(entity)));*/
 }
 
 void game::SScenePositionUpdateSystem::update() {

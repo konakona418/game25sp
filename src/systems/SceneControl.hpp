@@ -7,6 +7,8 @@
 
 #include <entt/entt.hpp>
 
+#include "Common.hpp"
+
 
 namespace game {
     struct CChild;
@@ -70,6 +72,37 @@ namespace game {
         static void update();
 
         static void unmount(entt::entity entity);
+    };
+
+    class TreeLike {
+    public:
+        void unmount() {
+            if (!isUnmounted()) {
+                m_unmounted = true;
+                game::SceneTreeUtils::unmount(m_entity);
+            }
+        }
+
+        void mountChild(entt::entity child) const {
+            game::SceneTreeUtils::attachChild(m_entity, child);
+        }
+
+        void unmountChild(entt::entity child) const {
+            game::SceneTreeUtils::detachChild(m_entity, child);
+            game::SceneTreeUtils::unmount(child);
+        }
+
+        [[nodiscard]] bool isUnmounted() const {
+            return m_unmounted || !getRegistry().valid(m_entity);
+        }
+
+        [[nodiscard]] entt::entity getEntity() const { return m_entity; }
+
+    protected:
+        entt::entity m_entity {};
+    private:
+        // this should only work internally
+        bool m_unmounted { false };
     };
 }
 

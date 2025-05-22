@@ -27,6 +27,9 @@ namespace game {
         std::optional<entt::delegate<void(entt::entity)>> m_invokeOnce;
         std::optional<entt::delegate<void(entt::entity, sf::Time)>> m_invokeUpdate;
     };
+
+    using InvokeOnceDelegate = entt::delegate<void(entt::entity)>;
+    using InvokeUpdateDelegate = entt::delegate<void(entt::entity, sf::Time)>;
 } // game
 
 

@@ -4,6 +4,17 @@
 
 #include "MovementControl.hpp"
 
-namespace game {
+#include "components/Velocity.hpp"
+#include "utils/MovementUtils.hpp"
 
+namespace game {
+    void SMovementSystem::update(sf::Time deltaTime) {
+        auto& registry = getRegistry();
+        auto view = registry.view<CLocalTransform, CVelocity>();
+        for (auto entity : view) {
+            MovementUtils::move(entity,
+                view.get<CVelocity>(entity).getVelocity() * deltaTime.asSeconds());
+            view.get<CVelocity>(entity).update(deltaTime);
+        }
+    }
 } // game

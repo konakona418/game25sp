@@ -6,18 +6,26 @@
 #define COMMON_HPP
 #include <entt/entity/registry.hpp>
 
+#include "SFML/System/Vector2.hpp"
+
 namespace game {
     class Game;
     class Logger;
     class ThreadPool;
     struct ResourceManager;
 
-    extern Game& getGame();
-    extern Logger& getLogger();
-    extern ThreadPool& getThreadPool();
+    Game& getGame();
+    Logger& getLogger();
+    ThreadPool& getThreadPool();
 
-    extern entt::registry& getRegistry();
-    extern ResourceManager& getResourceManager();
+    entt::registry& getRegistry();
+    ResourceManager& getResourceManager();
+
+    float random(float min, float max);
+    sf::Vector2f random(sf::Vector2f min, sf::Vector2f max);
+    sf::Vector2f random(sf::Vector2f max);
+    bool randomBool();
+    bool randomBool(float chance);
 }
 
 #endif //COMMON_HPP

@@ -89,12 +89,16 @@ namespace game {
             getInstance().runAsyncImpl(std::function<void()>(fn));
         }
 
+        void setTimeScale(float timeScale) { m_timeScale = timeScale; }
+        [[nodiscard]] float getTimeScale() const { return m_timeScale; }
+
     private:
         entt::registry m_registry;
         entt::dispatcher m_dispatcher;
         uint32_t m_hardwareConcurrency;
         bool m_isRunning { false };
         Config m_config;
+        float m_timeScale { 1.f };
 
         Game(Game&& other) noexcept = default;
         Game& operator=(Game&& other) noexcept = default;

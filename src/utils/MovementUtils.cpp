@@ -11,7 +11,7 @@ namespace game {
         auto& registry = game::getRegistry();
 
         if (!registry.any_of<CHasLayout>(entity)) {
-            getLogger().logDebug("Entity does not have layout components, adding them");
+            // getLogger().logDebug("Entity does not have layout components, adding them");
             attachLayoutComponents(entity);
         }
 

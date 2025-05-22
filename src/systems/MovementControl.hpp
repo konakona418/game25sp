@@ -10,7 +10,10 @@
 #include "SFML/System/Vector2.hpp"
 
 namespace game {
-
+    class SMovementSystem {
+    public:
+        static void update(sf::Time deltaTime);
+    };
 } // game
 
 #endif //MOVEMENTCONTROL_HPP

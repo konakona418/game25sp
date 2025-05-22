@@ -9,12 +9,14 @@
 #include "components/Scripts.hpp"
 #include "systems/MovementControl.hpp"
 #include "systems/SceneControl.hpp"
-#include "utils/AnimatedTextureGenerator.hpp"
+#include "utils/TextureGenerator.hpp"
+#include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
 
 auto onKeyPress(entt::entity entity, sf::Time deltaTime) -> void {
     auto& registry = game::getRegistry();
-    auto& keyboard = game::getGame().getKeyboard();
+    auto& game = game::getGame();
+    auto& keyboard = game.getKeyboard();
 
     sf::Vector2f velocity = sf::Vector2f{0, 0};
     if (keyboard.isKeyPressed(sf::Keyboard::Key::Up)) {
@@ -28,6 +30,11 @@ auto onKeyPress(entt::entity entity, sf::Time deltaTime) -> void {
     }
     if (keyboard.isKeyPressed(sf::Keyboard::Key::Right)) {
         velocity.x = 1;
+    }
+    if (keyboard.isKeyPressed(sf::Keyboard::Key::LShift)) {
+        game.setTimeScale(0.5f);
+    } else {
+        game.setTimeScale(1.0f);
     }
 
     auto& player = registry.get<game::prefab::GPlayerComponent>(entity);
@@ -57,11 +64,7 @@ game::prefab::Player game::prefab::Player::create() {
     return {};
 }
 
-void game::prefab::Player::detach() const {
-    SceneTreeUtils::unmount(m_entity);
-}
-
-game::prefab::Player::Player() {
+game::prefab::Player::Player() : TreeLike() {
     auto& registry = game::getRegistry();
     auto entity = registry.create();
     m_entity = entity;
@@ -76,6 +79,7 @@ game::prefab::Player::Player() {
 
     registry.emplace<game::CRenderComponent>(entity);
     registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER);
+    registry.emplace<game::CRenderOrderComponent>(entity, 0);
 
     auto animations = loadAnimationResources();
     registry.emplace<game::CAnimatedSpriteRenderComponent>(entity, animations["idle"], true);
@@ -88,7 +92,7 @@ game::prefab::Player::Player() {
 }
 
 std::unordered_map<std::string, game::AnimatedFrames> game::prefab::Player::loadAnimationResources() {
-    static Lazy<std::unordered_map<std::string, AnimatedFrames>> animations {
+    static game::Lazy<std::unordered_map<std::string, AnimatedFrames>> animations {
         [] {
             std::unordered_map<std::string, AnimatedFrames> res;
             res.emplace("idle",

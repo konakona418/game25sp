@@ -26,6 +26,19 @@ namespace game {
         sf::Time m_duration { sf::seconds(1) };
     };
 
+    class StaticTextureGenerator {
+    public:
+        StaticTextureGenerator() = default;
+        StaticTextureGenerator& setSize(sf::Vector2i size) { m_size = size; return *this; }
+        StaticTextureGenerator& setOffset(sf::Vector2i offset) { m_offset = offset; return *this; }
+
+        [[nodiscard]] SpriteFrame generate(const std::string& resourceName, const std::string& filePath) const;
+        [[nodiscard]] SpriteFrame generate(const std::string& resourceName, const entt::resource<RawTexture>& rawTexture) const;
+    private:
+        sf::Vector2i m_size { 0, 0 };
+        sf::Vector2i m_offset { 0, 0 };
+    };
+
 } // game
 
 #endif //ANIMATEDTEXTUREGENERATOR_HPP

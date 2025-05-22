@@ -10,12 +10,14 @@ namespace game::prefab {
     class Root {
     public:
         static Root& create();
-        void detach() const;
+        void unmount();
         void mountChild(entt::entity child) const;
+        [[nodiscard]] bool isUnmounted() const;
 
         ~Root();
     private:
         entt::entity m_entity;
+        bool m_unmounted = false;
         Root() = default;
     };
 } // game

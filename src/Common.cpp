@@ -4,6 +4,8 @@
 
 #include "Common.hpp"
 
+#include <random>
+
 #include "Game.hpp"
 
 namespace game {
@@ -11,19 +13,44 @@ namespace game {
         return Game::getInstance();
     }
 
-    extern Logger& getLogger() {
+    Logger& getLogger() {
         return getGame().getLogger();
     }
 
-    extern ThreadPool& getThreadPool() {
+    ThreadPool& getThreadPool() {
         return getGame().getThreadPool();
     }
 
-    extern entt::registry& getRegistry() {
+    entt::registry& getRegistry() {
         return getGame().getRegistry();
     }
 
-    extern ResourceManager& getResourceManager() {
+    ResourceManager& getResourceManager() {
         return getGame().getResourceManager();
     }
+
+    float random(float min, float max) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution dis(min, max);
+        return dis(gen);
+    }
+
+    sf::Vector2f random(sf::Vector2f min, sf::Vector2f max) {
+        return {random(min.x, max.x), random(min.y, max.y)};
+    }
+
+    sf::Vector2f random(sf::Vector2f max) {
+        return random(sf::Vector2f(0, 0), max);
+    }
+
+    bool randomBool() {
+        return randomBool(0.5f);
+    }
+
+    bool randomBool(float chance) {
+        return random(0, 1) > chance;
+    }
+
+
 }

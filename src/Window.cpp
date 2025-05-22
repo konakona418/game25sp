@@ -9,6 +9,7 @@
 #include "Logger.hpp"
 #include "ThreadPool.hpp"
 #include "systems/CollisionControl.hpp"
+#include "systems/MovementControl.hpp"
 #include "systems/MusicControl.hpp"
 #include "systems/RenderControl.hpp"
 #include "systems/SceneControl.hpp"
@@ -39,7 +40,8 @@ namespace game {
         m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode(m_windowSize), m_windowTitle);
         setVideoPreferences(m_videoPreference.fps, m_videoPreference.vsync);
 
-        auto& keyboard = getGame().getKeyboard();
+        auto& game = getGame();
+        auto& keyboard = game.getKeyboard();
 
         sf::Clock internalClock;
         internalClock.start();
@@ -64,8 +66,12 @@ namespace game {
             }
 
             auto deltaTime = internalClock.restart();
+            const auto timeScale = game.getTimeScale();
+
+            deltaTime *= timeScale;
 
             // DO NOT write the logic in event polling loop!!
+            SMovementSystem::update(deltaTime);
             SScenePositionUpdateSystem::update();
             SCollisionSystem::update(deltaTime);
             SScriptsSystem::update(deltaTime);

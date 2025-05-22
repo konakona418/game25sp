@@ -2,7 +2,7 @@
 // Created on 2025/5/20
 // by konakona418 (https://github.com/konakona418)
 
-#include "AnimatedTextureGenerator.hpp"
+#include "TextureGenerator.hpp"
 
 #include <entt/core/hashed_string.hpp>
 
@@ -51,5 +51,24 @@ namespace game {
         animatedFrames.loop = true;
         animatedFrames.animationName = entt::hashed_string { resourceName.c_str() };
         return animatedFrames;
+    }
+
+    SpriteFrame StaticTextureGenerator::generate(const std::string& resourceName, const std::string& filePath) const {
+        auto rawTextureResult = ResourceManager::getRawTextureCache().load(entt::hashed_string { resourceName.c_str() }, filePath);
+        if (!rawTextureResult.second) {
+            getLogger().logWarn("Failed to load raw texture: " + filePath + ". Existing resource with the same name already exists!");
+        }
+        auto rawTexture = rawTextureResult.first->second;
+        return generate(resourceName, rawTexture);
+    }
+
+    SpriteFrame StaticTextureGenerator::generate(const std::string& resourceName,
+        const entt::resource<RawTexture>& rawTexture) const {
+        sf::IntRect rect { m_offset, m_size };
+        return SpriteFrame { ResourceManager::getTextureCache().load(
+            entt::hashed_string { resourceName.c_str() },
+            rawTexture,
+            rect).first->second
+        };
     }
 } // game
