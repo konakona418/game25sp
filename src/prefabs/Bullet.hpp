@@ -32,7 +32,7 @@ namespace game::prefab {
         Bullet(sf::Vector2f pos, sf::Vector2f dir);
         Bullet(sf::Vector2f pos, sf::Vector2f dir, float speed);
 
-        static std::shared_ptr<SpriteFrame> loadTexture();
+        static entt::resource<SpriteFrame> loadTexture();
     };
 
 } // game

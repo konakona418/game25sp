@@ -9,6 +9,8 @@
 #include "SFML/System/Vector2.hpp"
 
 namespace game {
+    struct RawTexture;
+
     class AnimatedTextureGenerator {
     public:
         AnimatedTextureGenerator() = default;
@@ -33,7 +35,7 @@ namespace game {
         StaticTextureGenerator& setOffset(sf::Vector2i offset) { m_offset = offset; return *this; }
 
         [[nodiscard]] SpriteFrame generate(const std::string& resourceName, const std::string& filePath) const;
-        [[nodiscard]] SpriteFrame generate(const std::string& resourceName, const entt::resource<RawTexture>& rawTexture) const;
+        [[nodiscard]] SpriteFrame generate(const std::string& resourceName, const entt::resource<game::RawTexture>& rawTexture) const;
     private:
         sf::Vector2i m_size { 0, 0 };
         sf::Vector2i m_offset { 0, 0 };

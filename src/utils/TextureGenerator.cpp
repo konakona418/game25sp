@@ -8,6 +8,7 @@
 
 #include "Common.hpp"
 #include "Logger.hpp"
+#include "ResourceManager.hpp"
 
 namespace game {
     AnimatedFrames AnimatedTextureGenerator::generate(const std::string& resourceName, const std::string& filePath) const {

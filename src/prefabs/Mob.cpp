@@ -6,6 +6,7 @@
 
 #include "Bullet.hpp"
 #include "Player.hpp"
+#include "ResourceManager.hpp"
 #include "components/Scripts.hpp"
 #include "components/Velocity.hpp"
 #include "utils/TextureGenerator.hpp"
@@ -37,8 +38,7 @@ namespace game::prefab {
         game::SceneTreeUtils::attachSceneTreeComponents(entity);
 
         registry.emplace<game::CRenderComponent>(entity);
-        registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER);
-        registry.emplace<game::CRenderOrderComponent>(entity, renderOrderAccumulator++);
+        registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, renderOrderAccumulator++);
 
         auto animations = loadAnimationResources();
         registry.emplace<game::CAnimatedSpriteRenderComponent>(entity, (*animations)["idle"], true);
@@ -54,13 +54,15 @@ namespace game::prefab {
     MobSharedAnimation Mob::loadAnimationResources() {
         static Lazy<MobSharedAnimation> animations {
             [] {
-                auto res = std::make_shared<std::unordered_map<std::string, AnimatedFrames>>();
-                res->emplace("idle", game::AnimatedTextureGenerator()
-                                   .setOffset(sf::Vector2f{0, 0})
-                                   .setPlacement(sf::Vector2u{1, 3})
-                                   .setSize(sf::Vector2f{32, 48})
-                                   .setDuration(sf::seconds(0.16))
-                                   .generate("mobIdle", "slime.png"));
+                auto res = std::make_shared<std::unordered_map<std::string, entt::resource<AnimatedFrames>>>();
+                res->emplace("idle", ResourceManager::getAnimatedFramesCache()
+                    .load(entt::hashed_string { "mobIdleAnimation"},
+                    game::AnimatedTextureGenerator()
+                               .setOffset(sf::Vector2f{0, 0})
+                               .setPlacement(sf::Vector2u{1, 3})
+                               .setSize(sf::Vector2f{32, 48})
+                               .setDuration(sf::seconds(0.16))
+                               .generate("mobIdle", "slime.png")).first->second);
                 return res;
             }
         };

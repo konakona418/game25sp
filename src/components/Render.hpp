@@ -9,12 +9,15 @@
 
 #include "Common.hpp"
 #include "Logger.hpp"
-#include "ResourceManager.hpp"
 #include "SFML/Graphics/RenderTarget.hpp"
+#include "SFML/Graphics/Shape.hpp"
 #include "SFML/Graphics/Sprite.hpp"
+#include "SFML/Graphics/Text.hpp"
+#include "SFML/System/String.hpp"
 #include "SFML/System/Time.hpp"
 
 namespace game {
+    struct Texture;
     struct CGlobalTransform;
 
     struct CRenderComponent {};
@@ -22,20 +25,15 @@ namespace game {
     // specify the layer for the component to be rendered
     struct CRenderLayerComponent {
         CRenderLayerComponent() = default;
-        explicit CRenderLayerComponent(size_t layer) : m_layer(layer) {}
+        explicit CRenderLayerComponent(size_t layer) : m_layer(layer), m_order(0) {}
+        CRenderLayerComponent(size_t layer, size_t order) : m_layer(layer), m_order(order) {}
+
         [[nodiscard]] size_t getLayer() const { return m_layer; }
         void setLayer(size_t layer) { m_layer = layer; }
-    private:
-        size_t m_layer;
-    };
-
-    // specify the order for the component to be rendered
-    struct CRenderOrderComponent {
-        CRenderOrderComponent() = default;
-        explicit CRenderOrderComponent(size_t order) : m_order(order) {}
         [[nodiscard]] size_t getOrder() const { return m_order; }
         void setOrder(size_t order) { m_order = order; }
     private:
+        size_t m_layer;
         size_t m_order;
     };
 
@@ -45,27 +43,53 @@ namespace game {
         sf::Time duration;
         entt::resource<Texture> texture;
 
+        SpriteFrame(const SpriteFrame& other) = default;
         SpriteFrame(entt::resource<Texture> texture, sf::Time duration) : duration(duration), texture(std::move(texture)) {}
         explicit SpriteFrame(entt::resource<Texture> texture) : duration(sf::seconds(1)), texture(std::move(texture)) {}
     };
 
     struct CSpriteRenderComponent {
-        explicit CSpriteRenderComponent(SpriteFrame frame) {
-            m_frame = std::make_shared<SpriteFrame>(std::move(frame));
-        }
+        CSpriteRenderComponent(const std::string& resourceName, const SpriteFrame& frame);
 
-        explicit CSpriteRenderComponent(std::shared_ptr<SpriteFrame> frame) : m_frame(std::move(frame)) {}
+        explicit CSpriteRenderComponent(entt::resource<SpriteFrame> frame) : m_frame(std::move(frame)) {}
 
-        void setFrame(SpriteFrame frame) { m_frame = std::make_shared<SpriteFrame>(std::move(frame)); }
-        [[nodiscard]] std::shared_ptr<SpriteFrame> getFrame() const { return m_frame; }
+        void setFrame(entt::resource<SpriteFrame> frame) { m_frame = std::move(frame); }
+        [[nodiscard]] entt::resource<SpriteFrame> getFrame() const { return m_frame; }
 
         void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform);
     private:
-        std::shared_ptr<SpriteFrame> m_frame;
+        entt::resource<SpriteFrame> m_frame;
         std::optional<sf::Sprite> m_sprite;
     };
 
-    struct CTextRenderComponent {};
+    struct CTextRenderComponent {
+        CTextRenderComponent(const std::string& resourceName, sf::Font&& font);
+        explicit CTextRenderComponent(entt::resource<sf::Font> font) : m_font(std::move(font)) {}
+
+        void setFont(entt::resource<sf::Font> font) { m_font = std::move(font); }
+        [[nodiscard]] entt::resource<sf::Font> getFont() const { return m_font; }
+
+        void setColor(sf::Color color) { m_color = color; }
+        [[nodiscard]] sf::Color getColor() const { return m_color; }
+
+        void setStyle(sf::Text::Style style) { m_style = style; }
+        [[nodiscard]] sf::Text::Style getStyle() const { return m_style; }
+
+        void setText(const sf::String& text) { m_text = text; }
+        [[nodiscard]] const sf::String& getText() const { return m_text; }
+
+        void setTextSize(size_t textSize) { m_textSize = textSize; }
+        [[nodiscard]] size_t getTextSize() const { return m_textSize; }
+
+        void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform);
+    private:
+        entt::resource<sf::Font> m_font;
+        std::optional<sf::Text> m_textSprite { std::nullopt };
+        sf::String m_text;
+        sf::Color m_color { sf::Color::White };
+        sf::Text::Style m_style { sf::Text::Style::Regular };
+        size_t m_textSize { 16 };
+    };
 
     struct AnimatedFrames {
         entt::hashed_string animationName { "<anonymous>" };
@@ -75,7 +99,8 @@ namespace game {
     };
 
     struct CAnimatedSpriteRenderComponent {
-        explicit CAnimatedSpriteRenderComponent(AnimatedFrames frames, const bool loop = true)
+        CAnimatedSpriteRenderComponent(const std::string& resourceName, const AnimatedFrames& frames, bool loop = true);
+        explicit CAnimatedSpriteRenderComponent(entt::resource<AnimatedFrames> frames, const bool loop = true)
             : m_frameControl(std::move(frames), loop) {}
 
         /**
@@ -83,7 +108,7 @@ namespace game {
          * Refer to: setFrames()
          * @param frames
          */
-        void setFramesForced(AnimatedFrames frames) {
+        void setFramesForced(entt::resource<AnimatedFrames> frames) {
             m_frameControl = FrameControl { std::move(frames), m_frameControl.m_loop };
         }
 
@@ -91,26 +116,26 @@ namespace game {
          * Only change the frames if the animation name is different.
          * @param frames
          */
-        void setFrames (AnimatedFrames frames) {
-            if (m_frameControl.m_frames.animationName != frames.animationName) {
+        void setFrames(entt::resource<AnimatedFrames> frames) {
+            if (m_frameControl.m_frames->animationName != frames->animationName) {
                 m_frameControl = FrameControl { std::move(frames), m_frameControl.m_loop };
             }
         }
 
-        [[nodiscard]] AnimatedFrames getFrames() const { return m_frameControl.m_frames; }
+        [[nodiscard]] entt::resource<AnimatedFrames> getFrames() const { return m_frameControl.m_frames; }
         void update(sf::RenderTarget& target, sf::Time deltaTime, const CGlobalTransform& globalTransform);
 
     private:
         struct FrameControl {
-            AnimatedFrames m_frames;
+            entt::resource<AnimatedFrames> m_frames;
             size_t m_frameIndex;
             size_t m_frameCount;
             bool m_loop;
             sf::Time m_timeAccumulated = sf::Time::Zero;
 
-            FrameControl(AnimatedFrames frames, bool loop)
-                : m_frames(std::move(frames)), m_frameIndex(0), m_frameCount(m_frames.frames.size()), m_loop(loop) {
-                if (m_frames.frames.empty()) {
+            FrameControl(entt::resource<AnimatedFrames> frames, bool loop)
+                : m_frames(std::move(frames)), m_frameIndex(0), m_frameCount(m_frames->frames.size()), m_loop(loop) {
+                if (m_frames->frames.empty()) {
                     getLogger().logError("AnimatedFrames is empty. Is this a desired behavior?");
                 }
             }
@@ -120,7 +145,7 @@ namespace game {
             void reset();
         };
 
-        FrameControl m_frameControl;
+        FrameControl m_frameControl { entt::resource<AnimatedFrames>(nullptr), false};
         std::optional<sf::Sprite> m_sprite;
     };
 
@@ -164,6 +189,14 @@ namespace game {
         };
         TileControl m_tileControl;
 
+    };
+
+    struct CShapeRenderComponent {
+        explicit CShapeRenderComponent(std::unique_ptr<sf::Shape> shape) : m_shape(std::move(shape)) {}
+        void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) const;
+    private:
+        std::unique_ptr<sf::Shape> m_shape { nullptr };
+        static void setShapeSize(sf::Shape* rawPtr, const sf::Vector2f& size);
     };
 } // game
 

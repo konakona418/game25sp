@@ -29,6 +29,10 @@ namespace game {
         return getGame().getResourceManager();
     }
 
+    entt::dispatcher& getEventDispatcher() {
+        return getGame().getEventDispatcher();
+    }
+
     float random(float min, float max) {
         std::random_device rd;
         std::mt19937 gen(rd());

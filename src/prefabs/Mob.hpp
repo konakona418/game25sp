@@ -13,7 +13,7 @@
 
 namespace game::prefab {
 
-    using MobSharedAnimation = std::shared_ptr<std::unordered_map<std::string, game::AnimatedFrames>>;
+    using MobSharedAnimation = std::shared_ptr<std::unordered_map<std::string, entt::resource<AnimatedFrames>>>;
 
     struct GMobComponent {
         static constexpr sf::Time MOVE_INTERVAL = sf::seconds(1.5f);

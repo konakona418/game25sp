@@ -11,17 +11,21 @@
 #include "systems/SceneControl.hpp"
 
 
+namespace game {
+    struct EOnCollisionEvent;
+}
+
 namespace game::prefab {
     class Player;
 
     struct GPlayerComponent {
         GPlayerComponent() = default;
         bool flipH = false;
-        std::unordered_map<std::string, AnimatedFrames> animations;
+        std::unordered_map<std::string, entt::resource<AnimatedFrames>> animations;
 
         float health = 100.f;
 
-        explicit GPlayerComponent(std::unordered_map<std::string, AnimatedFrames> animations)
+        explicit GPlayerComponent(std::unordered_map<std::string, entt::resource<AnimatedFrames>> animations)
             : animations(std::move(animations)) {};
     };
 
@@ -33,7 +37,9 @@ namespace game::prefab {
         static constexpr size_t RENDER_LAYER = 16;
 
         Player();
-        static std::unordered_map<std::string, AnimatedFrames> loadAnimationResources();
+        static std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> loadAnimationResources();
+        static void onUpdate(entt::entity entity, sf::Time deltaTime);
+        static void onCollision(game::EOnCollisionEvent);
     };
 }
 

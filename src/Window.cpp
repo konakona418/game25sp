@@ -14,6 +14,7 @@
 #include "systems/RenderControl.hpp"
 #include "systems/SceneControl.hpp"
 #include "systems/ScriptsControl.hpp"
+#include "systems/TweeningControl.hpp"
 
 namespace game {
     void Window::setVideoPreferences(const int fps, const bool vsync) {
@@ -74,6 +75,7 @@ namespace game {
             SMovementSystem::update(deltaTime);
             SScenePositionUpdateSystem::update();
             SCollisionSystem::update(deltaTime);
+            STweenSystem::update(deltaTime);
             SScriptsSystem::update(deltaTime);
 
             SMusicSystem::update();

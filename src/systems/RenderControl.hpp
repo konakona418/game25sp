@@ -4,6 +4,8 @@
 
 #ifndef RENDERCONTROL_HPP
 #define RENDERCONTROL_HPP
+#include <entt/entity/entity.hpp>
+
 #include "SFML/System/Time.hpp"
 
 
@@ -15,6 +17,15 @@ namespace game {
     class SRenderSystem {
     public:
         static void update(sf::RenderTarget& target, sf::Time deltaTime);
+    };
+
+    class RenderUtils {
+    public:
+        [[nodiscard]] static bool isVisible(entt::entity entity);
+        static void markAsInvisible(entt::entity entity);
+        static void markAsVisible(entt::entity entity);
+        static void markAsInvisibleNotRecurse(entt::entity entity);
+        static void markAsVisibleNotRecurse(entt::entity entity);
     };
 }
 

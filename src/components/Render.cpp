@@ -8,6 +8,13 @@
 #include "Layout.hpp"
 #include "Logger.hpp"
 
+#include "ResourceManager.hpp"
+
+game::CSpriteRenderComponent::CSpriteRenderComponent(const std::string& resourceName, const SpriteFrame& frame) {
+    m_frame = ResourceManager::getSpriteFrameCache().load(entt::hashed_string { resourceName.c_str() },
+        frame).first->second;
+}
+
 void game::CSpriteRenderComponent::update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) {
     // this is not even a temporary solution.
     if (!m_sprite.has_value()) {
@@ -35,6 +42,38 @@ void game::CSpriteRenderComponent::update(sf::RenderTarget& target, const CGloba
         m_sprite->setTextureRect({textureRect->position, {static_cast<int>(size.x), static_cast<int>(size.y)}});
     }
     target.draw(*m_sprite);
+}
+
+game::CTextRenderComponent::CTextRenderComponent(const std::string& resourceName, sf::Font&& font) {
+    m_font = ResourceManager::getFontCache()
+        .load(entt::hashed_string { resourceName.c_str() }, std::forward<sf::Font>(font))
+        .first->second;
+}
+
+void game::CTextRenderComponent::update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) {
+    if (!m_textSprite.has_value()) {
+        m_textSprite = sf::Text(m_font);
+        return;
+    }
+    m_textSprite->setPosition(globalTransform.getPosition());
+    m_textSprite->setScale(globalTransform.getScale());
+    m_textSprite->setOrigin(globalTransform.getOrigin());
+
+    m_textSprite->setString(m_text);
+
+    m_textSprite->setFont(*m_font);
+    m_textSprite->setFillColor(m_color);
+    m_textSprite->setStyle(m_style);
+    m_textSprite->setCharacterSize(m_textSize);
+
+    target.draw(*m_textSprite);
+}
+
+game::CAnimatedSpriteRenderComponent::CAnimatedSpriteRenderComponent(const std::string& resourceName,
+                                                                     const AnimatedFrames& frames, const bool loop) {
+    auto frameRef = ResourceManager::getAnimatedFramesCache()
+                    .load(entt::hashed_string{resourceName.c_str()}, frames).first->second;
+    m_frameControl = FrameControl{frameRef, loop};
 }
 
 void game::CAnimatedSpriteRenderComponent::update(sf::RenderTarget& target, sf::Time deltaTime, const CGlobalTransform& globalTransform) {
@@ -78,7 +117,7 @@ void game::CAnimatedSpriteRenderComponent::FrameControl::update(const sf::Time d
     }
     m_timeAccumulated = totalTime - m_frames.duration * static_cast<float>(frameOffset);*/
     m_timeAccumulated += deltaTime;
-    auto offset = static_cast<size_t>(std::roundf(m_timeAccumulated / m_frames.duration));
+    auto offset = static_cast<size_t>(std::roundf(m_timeAccumulated / m_frames->duration));
     m_frameIndex = offset % m_frameCount;
     //getLogger().logDebug("FrameControl::update: " + std::to_string(deltaTime.asMilliseconds()));
 }
@@ -88,7 +127,7 @@ void game::CAnimatedSpriteRenderComponent::FrameControl::nextFrame() {
 }
 
 entt::resource<game::Texture> game::CAnimatedSpriteRenderComponent::FrameControl::getCurrentFrame() const {
-    return m_frames.frames[m_frameIndex];
+    return m_frames->frames[m_frameIndex];
 }
 void game::CAnimatedSpriteRenderComponent::FrameControl::reset() {
     m_frameIndex = 0;
@@ -143,4 +182,30 @@ void game::CTiledRenderComponent::TileControl::reset() {
 
 game::Tile& game::CTiledRenderComponent::TileControl::getTileById(TileIdType id) {
     return m_tiles.at(id);
+}
+
+void game::CShapeRenderComponent::update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) const {
+    if (!m_shape) {
+        return;
+    }
+
+    m_shape->setPosition(globalTransform.getPosition());
+    setShapeSize(m_shape.get(), globalTransform.getSize());
+    m_shape->setScale(globalTransform.getScale());
+    m_shape->setOrigin(globalTransform.getOrigin());
+
+    target.draw(*m_shape);
+}
+
+void game::CShapeRenderComponent::setShapeSize(sf::Shape* rawPtr, const sf::Vector2f& size) {
+    if (dynamic_cast<sf::RectangleShape*>(rawPtr) != nullptr) {
+        dynamic_cast<sf::RectangleShape*>(rawPtr)->setSize(size);
+        return;
+    }
+    if (dynamic_cast<sf::CircleShape*>(rawPtr) != nullptr) {
+        dynamic_cast<sf::CircleShape*>(rawPtr)->setRadius(size.x * 0.5f);
+        return;
+    }
+    throw std::runtime_error("CShapeRenderComponent::setShapeSize: unsupported shape type");
+    // todo: add other shapes
 }

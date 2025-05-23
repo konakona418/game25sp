@@ -6,6 +6,7 @@
 
 #include <utils/TextureGenerator.hpp>
 
+#include "ResourceManager.hpp"
 #include "components/Collision.hpp"
 #include "components/Render.hpp"
 #include "components/Velocity.hpp"
@@ -44,8 +45,7 @@ namespace game::prefab {
         game::SceneTreeUtils::attachSceneTreeComponents(entity);
 
         registry.emplace<game::CRenderComponent>(entity);
-        registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER);
-        registry.emplace<game::CRenderOrderComponent>(entity, renderOrderAccumulator++);
+        registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, renderOrderAccumulator++);
 
         auto frame = loadTexture();
         registry.emplace<game::CSpriteRenderComponent>(entity, frame);
@@ -60,14 +60,17 @@ namespace game::prefab {
         registry.emplace<game::prefab::GBulletComponent>(entity);
     }
 
-    std::shared_ptr<SpriteFrame> Bullet::loadTexture() {
-        static Lazy texture = Lazy<std::shared_ptr<SpriteFrame>> {
+    entt::resource<SpriteFrame> Bullet::loadTexture() {
+        static Lazy texture = Lazy<entt::resource<SpriteFrame>> {
             []() {
-                SpriteFrame frame = StaticTextureGenerator()
+                entt::resource<SpriteFrame> texture =
+                    ResourceManager::getSpriteFrameCache().load(
+                        entt::hashed_string {  "bulletSprite" },
+                        StaticTextureGenerator()
                                     .setOffset({0, 0})
                                     .setSize({32, 32})
-                                    .generate("bullet", "bullet.png");
-                std::shared_ptr<SpriteFrame> texture = std::make_shared<SpriteFrame>(frame);
+                                    .generate("bullet", "bullet.png"))
+                    .first->second;
                 return texture;
             }
         };

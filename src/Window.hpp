@@ -31,6 +31,8 @@ namespace game {
 
         void setWindowSize(const sf::Vector2u& windowSize);
 
+        [[nodiscard]] sf::Vector2u getWindowSize() const { return m_windowSize; }
+
         void run();
 
     private:

@@ -4,17 +4,19 @@
 
 #include "Player.hpp"
 
+#include "Bullet.hpp"
 #include "Game.hpp"
 #include "components/Collision.hpp"
 #include "components/Layout.hpp"
 #include "components/Scripts.hpp"
+#include "systems/CollisionControl.hpp"
 #include "systems/MovementControl.hpp"
 #include "systems/SceneControl.hpp"
 #include "utils/TextureGenerator.hpp"
 #include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
 
-auto onKeyPress(entt::entity entity, sf::Time deltaTime) -> void {
+void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
     auto& registry = game::getRegistry();
     auto& game = game::getGame();
     auto& keyboard = game.getKeyboard();
@@ -61,7 +63,29 @@ auto onKeyPress(entt::entity entity, sf::Time deltaTime) -> void {
     }
 };
 
+void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
+    auto& registry = game::getRegistry();
+    auto entity1 = e.collider1;
+    auto entity2 = e.collider2;
+
+    auto pair = game::which<
+        game::prefab::GPlayerComponent,
+        game::prefab::GBulletComponent>(entity1, entity2);
+    if (pair) {
+        auto& playerComponent = registry.get<game::prefab::GPlayerComponent>(pair->first);
+        game::SceneTreeUtils::unmount(pair->second);
+        playerComponent.health -= 10;
+        game::getLogger().logDebug("Player health: " + std::to_string(playerComponent.health));
+        if (playerComponent.health <= 0) {
+            game::SceneTreeUtils::unmount(pair->first);
+            game::getLogger().logInfo("Player died!");
+        }
+    }
+}
+
 game::prefab::Player game::prefab::Player::create() {
+    static entt::connection collisionConn;
+    collisionConn = game::getEventDispatcher().sink<game::EOnCollisionEvent>().connect<&onCollision>();
     return {};
 }
 
@@ -79,14 +103,13 @@ game::prefab::Player::Player() : TreeLike() {
     game::SceneTreeUtils::attachSceneTreeComponents(entity);
 
     registry.emplace<game::CRenderComponent>(entity);
-    registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER);
-    registry.emplace<game::CRenderOrderComponent>(entity, 0);
+    registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, 0);
 
     auto animations = loadAnimationResources();
     registry.emplace<game::CAnimatedSpriteRenderComponent>(entity, animations["idle"], true);
     entt::delegate<void(entt::entity, sf::Time)> delegate{};
 
-    delegate.connect<&onKeyPress>();
+    delegate.connect<&onUpdate>();
     registry.emplace<game::CScriptsComponent>(entity, delegate);
 
     registry.emplace<game::CCollisionComponent>(entity);
@@ -98,22 +121,26 @@ game::prefab::Player::Player() : TreeLike() {
     registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
 }
 
-std::unordered_map<std::string, game::AnimatedFrames> game::prefab::Player::loadAnimationResources() {
-    static game::Lazy<std::unordered_map<std::string, AnimatedFrames>> animations {
+std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::prefab::Player::loadAnimationResources() {
+    static game::Lazy<std::unordered_map<std::string, entt::resource<AnimatedFrames>>> animations {
         [] {
-            std::unordered_map<std::string, AnimatedFrames> res;
-            res.emplace("idle", game::AnimatedTextureGenerator()
-                               .setOffset(sf::Vector2f{0, 0})
-                               .setPlacement(sf::Vector2u{1, 6})
-                               .setSize(sf::Vector2f{32, 48})
-                               .setDuration(sf::seconds(0.1))
-                               .generate("playerIdle", "idle.png"));
-            res.emplace("walk", game::AnimatedTextureGenerator()
-                               .setOffset(sf::Vector2f{0, 0})
-                               .setPlacement(sf::Vector2u{1, 8})
-                               .setSize(sf::Vector2f{32, 48})
-                               .setDuration(sf::seconds(0.1))
-                               .generate("playerWalk", "walk.png"));
+            std::unordered_map<std::string, entt::resource<AnimatedFrames>> res;
+            res.emplace("idle", ResourceManager::getAnimatedFramesCache()
+                .load(entt::hashed_string {"playerIdleAnimation"},
+                    game::AnimatedTextureGenerator()
+                        .setOffset(sf::Vector2f{0, 0})
+                        .setPlacement(sf::Vector2u{1, 6})
+                        .setSize(sf::Vector2f{32, 48})
+                        .setDuration(sf::seconds(0.1))
+                        .generate("playerIdle", "idle.png")).first->second);
+            res.emplace("walk", ResourceManager::getAnimatedFramesCache()
+                .load(entt::hashed_string {"playerWalkAnimation"},
+                    game::AnimatedTextureGenerator()
+                        .setOffset(sf::Vector2f{0, 0})
+                        .setPlacement(sf::Vector2u{1, 8})
+                        .setSize(sf::Vector2f{32, 48})
+                        .setDuration(sf::seconds(0.1))
+                        .generate("playerWalk", "walk.png")).first->second);
             return res;
         }
     };
