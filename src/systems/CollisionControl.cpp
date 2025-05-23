@@ -12,9 +12,18 @@
 namespace game {
     void SCollisionSystem::update(sf::Time deltaTime) {
         auto& registry = getRegistry();
-        auto view = registry.view<CCollisionComponent>();
+        auto view = registry.view<CCollisionComponent, CCollisionLayerComponent>();
         for (auto it1 = view.begin(); it1 != view.end(); ++it1) {
             for (auto it2 = std::next(it1); it2 != view.end(); ++it2) {
+                auto& layer1 = view.get<CCollisionLayerComponent>(*it1);
+                auto& layer2 = view.get<CCollisionLayerComponent>(*it2);
+
+                if (!CollisionUtils::shouldCollide(
+                    layer1.getLayer(), layer2.getLayer(),
+                    layer1.getMask(), layer2.getMask())) {
+                    continue;
+                }
+
                 bool collision = false;
                 collision |= checkCollisionBoxes(registry, *it1, *it2);
                 collision |= checkCollisionCircles(registry, *it1, *it2);

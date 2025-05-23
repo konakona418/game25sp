@@ -58,8 +58,12 @@ game::Logger::concatLineFile(const std::string& message, int line, const std::st
 void game::Logger::log(const std::string& message, LogLevel level) {
     const auto timeSinceLaunch = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now() - m_startTime);
-    m_logQueue.emplace_back(message, level, timeSinceLaunch.count());
-    m_cv.notify_one();
+
+    {
+        std::scoped_lock lock(m_mutex);
+        m_logQueue.emplace_back(message, level, timeSinceLaunch.count());
+        m_cv.notify_one();
+    }
 }
 
 void game::Logger::logDebug(const std::string& message) {

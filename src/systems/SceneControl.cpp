@@ -178,12 +178,13 @@ bool game::SceneTreeUtils::isDirty(entt::entity entity) {
 void game::SceneTreeUtils::unmount(entt::entity entity) {
     auto& registry = game::getRegistry();
 
-    if (!registry.any_of<CNode>(entity)) {
-        throw std::runtime_error("Entity does not have CNode component.");
+    if (!registry.valid(entity)) {
+        getLogger().logWarn("Entity has been invalidated forehand.");
+        return;
     }
 
-    if (!registry.valid(entity)) {
-        throw std::runtime_error("Entity is invalid.");
+    if (!registry.any_of<CNode>(entity)) {
+        throw std::runtime_error("Entity does not have CNode component.");
     }
 
     // life cycle!!

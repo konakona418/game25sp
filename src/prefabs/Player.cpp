@@ -5,6 +5,7 @@
 #include "Player.hpp"
 
 #include "Game.hpp"
+#include "components/Collision.hpp"
 #include "components/Layout.hpp"
 #include "components/Scripts.hpp"
 #include "systems/MovementControl.hpp"
@@ -88,6 +89,12 @@ game::prefab::Player::Player() : TreeLike() {
     delegate.connect<&onKeyPress>();
     registry.emplace<game::CScriptsComponent>(entity, delegate);
 
+    registry.emplace<game::CCollisionComponent>(entity);
+    registry.emplace<game::CCollisionAABBComponent>(entity, sf::Vector2f {32.f, 48.f});
+    // on layer 1, collide with enemy bullet(2)
+    registry.emplace<game::CCollisionLayerComponent>(entity,
+        CollisionUtils::getCollisionMask(1), CollisionUtils::getCollisionMask(2));
+
     registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
 }
 
@@ -95,15 +102,13 @@ std::unordered_map<std::string, game::AnimatedFrames> game::prefab::Player::load
     static game::Lazy<std::unordered_map<std::string, AnimatedFrames>> animations {
         [] {
             std::unordered_map<std::string, AnimatedFrames> res;
-            res.emplace("idle",
-                               game::AnimatedTextureGenerator()
+            res.emplace("idle", game::AnimatedTextureGenerator()
                                .setOffset(sf::Vector2f{0, 0})
                                .setPlacement(sf::Vector2u{1, 6})
                                .setSize(sf::Vector2f{32, 48})
                                .setDuration(sf::seconds(0.1))
                                .generate("playerIdle", "idle.png"));
-            res.emplace("walk",
-                               game::AnimatedTextureGenerator()
+            res.emplace("walk", game::AnimatedTextureGenerator()
                                .setOffset(sf::Vector2f{0, 0})
                                .setPlacement(sf::Vector2u{1, 8})
                                .setSize(sf::Vector2f{32, 48})

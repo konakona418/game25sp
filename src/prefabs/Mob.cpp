@@ -73,6 +73,13 @@ namespace game::prefab {
         auto& mobComponent = registry.get<game::prefab::GMobComponent>(entity);
 
         auto& playerSelector = *registry.view<game::prefab::GPlayerComponent>().begin();
+        if (!registry.valid(playerSelector)) {
+            auto& velocityComponent = registry.get<game::CVelocity>(entity);
+            velocityComponent.setAcceleration(sf::Vector2f {0, 0});
+            velocityComponent.setVelocity(sf::Vector2f {0, 0});
+            return;
+        }
+
         const auto& playerPos = registry.get<game::CGlobalTransform>(playerSelector).getPosition();
         const auto& mobPos = registry.get<game::CGlobalTransform>(entity).getPosition();
         auto delta = (playerPos - mobPos).normalized();

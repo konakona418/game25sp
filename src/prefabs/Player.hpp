@@ -19,6 +19,8 @@ namespace game::prefab {
         bool flipH = false;
         std::unordered_map<std::string, AnimatedFrames> animations;
 
+        float health = 100.f;
+
         explicit GPlayerComponent(std::unordered_map<std::string, AnimatedFrames> animations)
             : animations(std::move(animations)) {};
     };

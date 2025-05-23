@@ -6,6 +6,7 @@
 
 #include <utils/TextureGenerator.hpp>
 
+#include "components/Collision.hpp"
 #include "components/Render.hpp"
 #include "components/Velocity.hpp"
 #include "utils/LazyLoader.hpp"
@@ -49,6 +50,12 @@ namespace game::prefab {
         auto frame = loadTexture();
         registry.emplace<game::CSpriteRenderComponent>(entity, frame);
         registry.emplace<game::CVelocity>(entity, dir.normalized() * speed);
+
+        registry.emplace<game::CCollisionComponent>(entity);
+        registry.emplace<game::CCollisionCircleComponent>(entity, 16.f);
+        // on layer 2, collide with player(1)
+        registry.emplace<game::CCollisionLayerComponent>(entity,
+            CollisionUtils::getCollisionMask(2), CollisionUtils::getCollisionMask(1));
 
         registry.emplace<game::prefab::GBulletComponent>(entity);
     }
