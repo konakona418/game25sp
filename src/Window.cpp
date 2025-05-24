@@ -72,11 +72,12 @@ namespace game {
             deltaTime *= timeScale;
 
             // DO NOT write the logic in event polling loop!!
+            SScriptsSystem::update(deltaTime);
+
             SMovementSystem::update(deltaTime);
             SScenePositionUpdateSystem::update();
             SCollisionSystem::update(deltaTime);
             STweenSystem::update(deltaTime);
-            SScriptsSystem::update(deltaTime);
 
             SMusicSystem::update();
 

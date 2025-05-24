@@ -122,6 +122,9 @@ namespace game::prefab {
             nextDialogLine(entity);
             dialogBoxComponent.keydown = false;
         }
+        if (keyboard.isKeyPressed(sf::Keyboard::Key::LControl)) {
+            nextDialogLine(entity);
+        }
 
         if (!dialogBoxComponent.dialogCollection.has_value()) {
             return;
@@ -173,6 +176,8 @@ namespace game::prefab {
             getEventDispatcher().trigger<game::prefab::EOnDialogBoxCompletedEvent>({ entity });
             return;
         }
+
+        getLogger().logDebug("Dialog line completed, offset: " + std::to_string(dialogBoxComponent.currentDialogLine));
 
         dialogBoxComponent.currentDialogLine++;
 
@@ -249,7 +254,7 @@ namespace game::prefab {
         SceneTreeUtils::attachSceneTreeComponents(container);
 
         //registry.emplace<game::CRenderComponent>(container);
-        registry.emplace<game::CRenderLayerComponent>(container, RENDER_LAYER - 1, 0);
+        registry.emplace<game::CRenderLayerComponent>(container, RENDER_LAYER, 1);
 
         auto rectShape = new sf::RectangleShape();
         rectShape->setFillColor(sf::Color(255, 255, 255, 196));
@@ -271,7 +276,7 @@ namespace game::prefab {
         SceneTreeUtils::attachSceneTreeComponents(text);
 
         //registry.emplace<game::CRenderComponent>(text);
-        registry.emplace<game::CRenderLayerComponent>(text, RENDER_LAYER, 0);
+        registry.emplace<game::CRenderLayerComponent>(text, RENDER_LAYER, 2);
 
         auto font = loadFont();
         auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
@@ -293,7 +298,7 @@ namespace game::prefab {
         SceneTreeUtils::attachSceneTreeComponents(text);
 
         //registry.emplace<game::CRenderComponent>(text);
-        registry.emplace<game::CRenderLayerComponent>(text, RENDER_LAYER, 0);
+        registry.emplace<game::CRenderLayerComponent>(text, RENDER_LAYER, 2);
 
         auto font = loadFont();
         auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
@@ -316,7 +321,7 @@ namespace game::prefab {
         SceneTreeUtils::attachSceneTreeComponents(portrait);
 
         //registry.emplace<game::CRenderComponent>(container);
-        registry.emplace<game::CRenderLayerComponent>(portrait, RENDER_LAYER - 1, 0);
+        registry.emplace<game::CRenderLayerComponent>(portrait, RENDER_LAYER, 0);
 
         auto rectShape = new sf::RectangleShape();
 

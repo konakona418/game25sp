@@ -12,6 +12,7 @@
 #include "utils/TextureGenerator.hpp"
 #include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
+#include "Root.hpp"
 
 namespace game::prefab {
     Mob Mob::create() {
@@ -89,6 +90,9 @@ namespace game::prefab {
         if (mobComponent.attackClock.getElapsedTime() > GMobComponent::ATTACK_INTERVAL && randomBool(0.75f)) {
             Bullet bullet = Bullet::create(mobPos, delta, random(100.f, 200.f));
             mobComponent.bullets.push_back(bullet.getEntity());
+
+            auto& root = game::prefab::Root::create();
+            root.mountChild(bullet.getEntity());
 
             if (mobComponent.bullets.size() > GMobComponent::MAX_BULLET_NUM) {
                 SceneTreeUtils::unmount(mobComponent.bullets.front());
