@@ -59,7 +59,7 @@ void game::CTextRenderComponent::update(sf::RenderTarget& target, const CGlobalT
     m_textSprite->setScale(globalTransform.getScale());
     m_textSprite->setOrigin(globalTransform.getOrigin());
 
-    m_textSprite->setString(m_text);
+    m_textSprite->setString(processText(m_text, globalTransform.getSize()));
 
     m_textSprite->setFont(*m_font);
     m_textSprite->setFillColor(m_color);
@@ -67,6 +67,22 @@ void game::CTextRenderComponent::update(sf::RenderTarget& target, const CGlobalT
     m_textSprite->setCharacterSize(m_textSize);
 
     target.draw(*m_textSprite);
+}
+
+sf::String game::CTextRenderComponent::processText(const sf::String& text, const sf::Vector2f& regionSize) const {
+    sf::String result;
+    float aggregateWidth = 0;
+    for (size_t i = 0; i < text.getSize(); i++) {
+        auto character = text[i];
+        auto characterWidth = m_font->getGlyph(character, m_textSize, false).advance;
+        if (aggregateWidth + characterWidth >= regionSize.x) {
+            result += '\n';
+            aggregateWidth = 0;
+        }
+        result += character;
+        aggregateWidth += characterWidth;
+    }
+    return result;
 }
 
 game::CAnimatedSpriteRenderComponent::CAnimatedSpriteRenderComponent(const std::string& resourceName,

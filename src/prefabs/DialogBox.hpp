@@ -11,6 +11,10 @@
 #include "systems/SceneControl.hpp"
 
 namespace game::prefab {
+    struct EOnDialogBoxCompletedEvent {
+        entt::entity entity;
+    };
+
     struct GDialogBoxComponent {
         bool isOpen = false;
 
@@ -41,6 +45,7 @@ namespace game::prefab {
         static constexpr size_t RENDER_LAYER = 128;
         static constexpr size_t NAME_FONT_SIZE = 24;
         static constexpr size_t CONTENT_FONT_SIZE = 18;
+        static constexpr float SINGLE_CHAR_TIME = 0.02f;
 
         DialogBox();
 

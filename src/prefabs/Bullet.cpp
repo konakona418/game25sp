@@ -69,7 +69,7 @@ namespace game::prefab {
                         StaticTextureGenerator()
                                     .setOffset({0, 0})
                                     .setSize({32, 32})
-                                    .generate("bullet", "bullet.png"))
+                                    .generate("bullet", "assets/bullet.png"))
                     .first->second;
                 return texture;
             }

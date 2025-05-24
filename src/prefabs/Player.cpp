@@ -76,9 +76,13 @@ void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
         game::SceneTreeUtils::unmount(pair->second);
         playerComponent.health -= 10;
         game::getLogger().logDebug("Player health: " + std::to_string(playerComponent.health));
+
+        game::getEventDispatcher().trigger<EOnPlayerDamageEvent>({ pair->first, playerComponent.health });
+
         if (playerComponent.health <= 0) {
             game::SceneTreeUtils::unmount(pair->first);
             game::getLogger().logInfo("Player died!");
+            game::getEventDispatcher().trigger<EOnPlayerDeathEvent>({ pair->first });
         }
     }
 }
@@ -132,7 +136,7 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
                         .setPlacement(sf::Vector2u{1, 6})
                         .setSize(sf::Vector2f{32, 48})
                         .setDuration(sf::seconds(0.1))
-                        .generate("playerIdle", "idle.png")).first->second);
+                        .generate("playerIdle", "assets/idle.png")).first->second);
             res.emplace("walk", ResourceManager::getAnimatedFramesCache()
                 .load(entt::hashed_string {"playerWalkAnimation"},
                     game::AnimatedTextureGenerator()
@@ -140,7 +144,7 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
                         .setPlacement(sf::Vector2u{1, 8})
                         .setSize(sf::Vector2f{32, 48})
                         .setDuration(sf::seconds(0.1))
-                        .generate("playerWalk", "walk.png")).first->second);
+                        .generate("playerWalk", "assets/walk.png")).first->second);
             return res;
         }
     };

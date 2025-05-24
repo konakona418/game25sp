@@ -4,6 +4,9 @@
 
 #ifndef DIALOGGENERATOR_HPP
 #define DIALOGGENERATOR_HPP
+
+#include <nlohmann/json.hpp>
+
 #include "ResourceManager.hpp"
 
 namespace game {
@@ -18,8 +21,13 @@ public:
                                 sf::Vector2f portraitScalingFactor = {1.0f, 1.0f}, size_t* outId = nullptr);
     DialogGenerator& addLine(size_t speakerId, const sf::String& text);
 
+    DialogGenerator& fromJson(const std::string& jsonFilePath);
+
     DialogCollection generate();
 private:
+
+    static sf::Color fromHex(const std::string& hex);
+
     DialogCollection m_dialogCollection {};
     size_t m_currentSpeakerId = 0;
 };

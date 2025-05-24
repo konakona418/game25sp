@@ -89,6 +89,8 @@ namespace game {
         sf::Color m_color { sf::Color::White };
         sf::Text::Style m_style { sf::Text::Style::Regular };
         size_t m_textSize { 16 };
+
+        sf::String processText(const sf::String& text, const sf::Vector2f& regionSize) const;
     };
 
     struct AnimatedFrames {

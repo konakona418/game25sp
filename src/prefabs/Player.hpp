@@ -18,6 +18,15 @@ namespace game {
 namespace game::prefab {
     class Player;
 
+    struct EOnPlayerDamageEvent {
+        entt::entity player;
+        float health;
+    };
+
+    struct EOnPlayerDeathEvent {
+        entt::entity player;
+    };
+
     struct GPlayerComponent {
         GPlayerComponent() = default;
         bool flipH = false;
