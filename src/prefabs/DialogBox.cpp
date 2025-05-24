@@ -4,6 +4,8 @@
 
 #include "DialogBox.hpp"
 
+#include <utility>
+
 #include "Game.hpp"
 #include "Window.hpp"
 #include "components/Render.hpp"
@@ -25,38 +27,74 @@ namespace game::prefab {
         dialogBoxComponent.isOpen = isVisible;
     }
 
+    void DialogBox::loadDialog(entt::resource<DialogCollection> dialogCollection) {
+        auto& registry = game::getRegistry();
+        auto& dialogBoxComponent = registry.get<game::prefab::GDialogBoxComponent>(m_entity);
+        dialogBoxComponent.dialogCollection = std::move(dialogCollection);
+        dialogBoxComponent.currentDialogLine = 0;
+
+        auto speaker = dialogBoxComponent.dialogCollection.value()->getSpeaker(dialogBoxComponent.dialogCollection.value()->lines[0].speakerId);
+        auto& nameTextRender = registry.get<game::CTextRenderComponent>(dialogBoxComponent.nameText);
+        nameTextRender.setText(speaker.name);
+        nameTextRender.setColor(speaker.nameColor);
+
+        auto* portraitShape = registry.get<game::CShapeRenderComponent>(dialogBoxComponent.portrait).getShape();
+        auto& portraitPosition = registry.get<game::CLocalTransform>(dialogBoxComponent.portrait);
+        if (speaker.portrait.has_value()) {
+            RenderUtils::markAsVisible(dialogBoxComponent.portrait);
+            portraitShape->setTexture(&speaker.portrait.value()->rawTextureRef->texture);
+            portraitShape->setTextureRect(speaker.portrait.value()->textureRect.value());
+
+            auto size = speaker.portrait.value()->textureRect.value().size;
+            portraitPosition.setSize({ static_cast<float>(size.x), static_cast<float>(size.y) });
+            portraitPosition.setScale(speaker.portraitScalingFactor);
+        } else {
+            RenderUtils::markAsInvisible(dialogBoxComponent.portrait);
+            portraitShape->setTexture(nullptr);
+        }
+
+        auto& tween = registry.get<CTweenComponent>(m_entity);
+        tween.setEndValue(static_cast<float>(dialogBoxComponent.dialogCollection.value()->lines[0].text.getSize()));
+        tween.restart();
+    }
+
+    void DialogBox::loadDialog(const std::string& resourceName, const DialogCollection& dialogCollection) {
+        auto dialogResource = ResourceManager::getDialogCache().load(entt::hashed_string { resourceName.c_str() }, dialogCollection).first->second;
+        loadDialog(dialogResource);
+    }
+
     DialogBox::DialogBox() {
         auto& registry = game::getRegistry();
         auto container = registry.create();
         auto nameText = registry.create();
         auto contentText = registry.create();
+        auto portrait = registry.create();
 
         m_entity = container;
 
         makeContainer(container);
         makeNameText(nameText);
         makeContentText(contentText);
+        makePortrait(portrait);
 
         SceneTreeUtils::attachChild(container, nameText);
         SceneTreeUtils::attachChild(container, contentText);
+        SceneTreeUtils::attachChild(container, portrait);
 
         auto& dialogBoxComponent = registry.emplace<game::prefab::GDialogBoxComponent>(container);
         dialogBoxComponent.container = container;
         dialogBoxComponent.contentText = contentText;
         dialogBoxComponent.nameText = nameText;
-        dialogBoxComponent.dialogCollection = loadDialogCollection();
-
-        auto speaker = dialogBoxComponent.dialogCollection->getSpeaker(dialogBoxComponent.dialogCollection->lines[0].speakerId);
-        auto& nameTextRender = registry.get<game::CTextRenderComponent>(dialogBoxComponent.nameText);
-        nameTextRender.setText(speaker.name);
-        nameTextRender.setColor(speaker.nameColor);
+        dialogBoxComponent.portrait = portrait;
 
         auto& tween = registry.emplace<CTweenComponent>(container);
         tween.setBeginValue(0.f);
-        tween.setEndValue(static_cast<float>(dialogBoxComponent.dialogCollection->lines[0].text.getSize()));
+        // tween.setEndValue(static_cast<float>(dialogBoxComponent.dialogCollection->lines[0].text.getSize()));
         tween.setDuration(sf::seconds(0.5f));
         tween.setCallback(DialogBox::onTweenCallback);
         tween.setCompletionCallback(DialogBox::onTweenCompletionCallback);
+
+        //loadDialog(loadDialogCollection());
     }
 
     void DialogBox::onUpdate(entt::entity entity, sf::Time deltaTime) {
@@ -70,7 +108,9 @@ namespace game::prefab {
             }
             return;
         }
-        RenderUtils::markAsVisible(entity);
+        RenderUtils::markAsVisibleNotRecurse(entity);
+        RenderUtils::markAsVisibleNotRecurse(dialogBoxComponent.nameText);
+        RenderUtils::markAsVisibleNotRecurse(dialogBoxComponent.contentText);
 
         if (keyboard.isKeyPressed(sf::Keyboard::Key::Space) && dialogBoxComponent.isOpen) {
             dialogBoxComponent.keydown = true;
@@ -78,6 +118,10 @@ namespace game::prefab {
         if (keyboard.isKeyReleased(sf::Keyboard::Key::Space) && dialogBoxComponent.keydown && dialogBoxComponent.isOpen) {
             nextDialogLine(entity);
             dialogBoxComponent.keydown = false;
+        }
+
+        if (!dialogBoxComponent.dialogCollection.has_value()) {
+            return;
         }
 
         auto& contentText = registry.get<game::CTextRenderComponent>(dialogBoxComponent.contentText);
@@ -88,12 +132,12 @@ namespace game::prefab {
         auto& registry = game::getRegistry();
         auto& dialogBoxComponent = registry.get<game::prefab::GDialogBoxComponent>(entity);
 
-        if (dialogBoxComponent.currentDialogLine >= dialogBoxComponent.dialogCollection->lines.size()) {
+        if (dialogBoxComponent.currentDialogLine >= dialogBoxComponent.dialogCollection.value()->lines.size()) {
             return;
         }
 
         dialogBoxComponent.line =
-            dialogBoxComponent.dialogCollection->lines[dialogBoxComponent.currentDialogLine]
+            dialogBoxComponent.dialogCollection.value()->lines[dialogBoxComponent.currentDialogLine]
             .text.substring(0, std::ceil(value));
     }
 
@@ -102,10 +146,15 @@ namespace game::prefab {
     void DialogBox::nextDialogLine(entt::entity entity) {
         auto& registry = game::getRegistry();
         auto& dialogBoxComponent = registry.get<game::prefab::GDialogBoxComponent>(entity);
+
+        if (!dialogBoxComponent.dialogCollection.has_value()) {
+            return;
+        }
+
         auto& tweenComponent = registry.get<game::CTweenComponent>(entity);
 
         // look out for minus-one errors
-        if (dialogBoxComponent.dialogCollection->lines.size() - 1 <= dialogBoxComponent.currentDialogLine) {
+        if (dialogBoxComponent.dialogCollection.value()->lines.size() <= dialogBoxComponent.currentDialogLine + 1) {
             dialogBoxComponent.isOpen = false;
             getLogger().logInfo("DialogBox finished: nextDialogLine");
             return;
@@ -114,13 +163,28 @@ namespace game::prefab {
         dialogBoxComponent.currentDialogLine++;
 
         tweenComponent.setEndValue(
-            static_cast<float>(dialogBoxComponent.dialogCollection->lines[dialogBoxComponent.currentDialogLine].text.getSize()));
+            static_cast<float>(dialogBoxComponent.dialogCollection.value()->lines[dialogBoxComponent.currentDialogLine].text.getSize()));
         tweenComponent.restart();
 
-        auto speaker = dialogBoxComponent.dialogCollection->getSpeaker(dialogBoxComponent.dialogCollection->lines[dialogBoxComponent.currentDialogLine].speakerId);
+        auto speaker = dialogBoxComponent.dialogCollection.value()->getSpeaker(dialogBoxComponent.dialogCollection.value()->lines[dialogBoxComponent.currentDialogLine].speakerId);
         auto& nameText = registry.get<game::CTextRenderComponent>(dialogBoxComponent.nameText);
         nameText.setText(speaker.name);
         nameText.setColor(speaker.nameColor);
+
+        auto* portraitShape = registry.get<game::CShapeRenderComponent>(dialogBoxComponent.portrait).getShape();
+        auto& portraitPosition = registry.get<game::CLocalTransform>(dialogBoxComponent.portrait);
+        if (speaker.portrait.has_value()) {
+            RenderUtils::markAsVisible(dialogBoxComponent.portrait);
+            portraitShape->setTexture(&speaker.portrait.value()->rawTextureRef->texture);
+            portraitShape->setTextureRect(speaker.portrait.value()->textureRect.value());
+
+            auto size = speaker.portrait.value()->textureRect.value().size;
+            portraitPosition.setSize({ static_cast<float>(size.x), static_cast<float>(size.y) });
+            portraitPosition.setScale(speaker.portraitScalingFactor);
+        } else {
+            RenderUtils::markAsInvisible(dialogBoxComponent.portrait);
+            portraitShape->setTexture(nullptr);
+        }
     }
 
     entt::resource<sf::Font> DialogBox::loadFont() {
@@ -172,7 +236,7 @@ namespace game::prefab {
         registry.emplace<game::CRenderLayerComponent>(container, RENDER_LAYER - 1, 0);
 
         auto rectShape = new sf::RectangleShape();
-        rectShape->setFillColor(sf::Color(255, 255, 255, 255));
+        rectShape->setFillColor(sf::Color(255, 255, 255, 196));
 
         auto uniqueShape = std::unique_ptr<sf::Shape>(rectShape);
         registry.emplace<game::CShapeRenderComponent>(container, std::move(uniqueShape));
@@ -221,5 +285,27 @@ namespace game::prefab {
         textRenderComponent.setTextSize(CONTENT_FONT_SIZE);
         textRenderComponent.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
         textRenderComponent.setColor(sf::Color::Black);
+    }
+
+    void DialogBox::makePortrait(entt::entity portrait) {
+        auto& registry = game::getRegistry();
+        auto windowSize = getGame().getWindow().getWindowSize();
+
+        game::MovementUtils::builder()
+                .setLocalPosition({30.f, static_cast<float>(windowSize.y) * 0.3f})
+                .setSize({static_cast<float>(windowSize.x) * 0.3f, static_cast<float>(windowSize.y) * 0.8f})
+                .setScale({1.0, 1.0})
+                .setAnchor(game::CLayout::Anchor::BottomLeft())
+                .build(portrait);
+        SceneTreeUtils::attachSceneTreeComponents(portrait);
+
+        //registry.emplace<game::CRenderComponent>(container);
+        registry.emplace<game::CRenderLayerComponent>(portrait, RENDER_LAYER - 1, 0);
+
+        auto rectShape = new sf::RectangleShape();
+
+        auto uniqueShape = std::unique_ptr<sf::Shape>(rectShape);
+        rectShape->setTexture(nullptr);
+        registry.emplace<game::CShapeRenderComponent>(portrait, std::move(uniqueShape));
     }
 } // game

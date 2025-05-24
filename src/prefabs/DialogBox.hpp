@@ -17,8 +17,9 @@ namespace game::prefab {
         entt::entity container { entt::null };
         entt::entity nameText { entt::null };
         entt::entity contentText { entt::null };
+        entt::entity portrait { entt::null };
 
-        entt::resource<DialogCollection> dialogCollection {};
+        std::optional<entt::resource<DialogCollection>> dialogCollection {};
         size_t currentDialogLine = 0;
 
         sf::String line {};
@@ -32,6 +33,8 @@ namespace game::prefab {
     public:
         static DialogBox create();
         void setVisibility(bool isVisible) const;
+        void loadDialog(entt::resource<DialogCollection> dialogCollection);
+        void loadDialog(const std::string& resourceName, const DialogCollection& dialogCollection);
 
         ~DialogBox() = default;
     private:
@@ -53,6 +56,7 @@ namespace game::prefab {
         static void makeContainer(entt::entity container);
         static void makeNameText(entt::entity text);
         static void makeContentText(entt::entity text);
+        static void makePortrait(entt::entity portrait);
     };
 } // game
 

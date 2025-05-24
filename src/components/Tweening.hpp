@@ -72,7 +72,7 @@ namespace game {
         sf::Time m_elapsed;
         sf::Time m_delay;
 
-        bool m_running { true };
+        bool m_running { false };
 
         float m_beginValue { 0.f };
         float m_endValue { 1.f };

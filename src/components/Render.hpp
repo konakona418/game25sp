@@ -194,6 +194,9 @@ namespace game {
     struct CShapeRenderComponent {
         explicit CShapeRenderComponent(std::unique_ptr<sf::Shape> shape) : m_shape(std::move(shape)) {}
         void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform) const;
+
+        void setShape(std::unique_ptr<sf::Shape> shape) { m_shape = std::move(shape); }
+        [[nodiscard]] sf::Shape* getShape() const { return m_shape.get(); }
     private:
         std::unique_ptr<sf::Shape> m_shape { nullptr };
         static void setShapeSize(sf::Shape* rawPtr, const sf::Vector2f& size);

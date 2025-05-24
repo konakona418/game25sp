@@ -5,12 +5,14 @@
 #include "DialogGenerator.hpp"
 
 namespace game {
-    DialogGenerator& DialogGenerator::addSpeaker(const sf::String& name, const sf::Color& color, size_t* outId) {
+    DialogGenerator& DialogGenerator::addSpeaker(const sf::String& name, const sf::Color& color,
+                                                 std::optional<entt::resource<Texture>> portrait,
+                                                 sf::Vector2f portraitScalingFactor, size_t* outId) {
         if (outId != nullptr) {
             *outId = m_currentSpeakerId;
         }
 
-        m_dialogCollection.speakers.insert({m_currentSpeakerId++, DialogSpeaker{name, color}});
+        m_dialogCollection.speakers.insert({m_currentSpeakerId++, DialogSpeaker {name, color, std::move(portrait), portraitScalingFactor} });
         return *this;
     }
 

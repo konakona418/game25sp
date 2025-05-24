@@ -74,6 +74,10 @@ namespace game {
         result_type operator()(entt::resource<RawTexture> texture, const sf::IntRect& rect) const {
             return std::make_shared<Texture>(std::move(texture), rect);
         }
+
+        result_type operator()(const std::string& fileName);
+
+        result_type operator()(const std::string& fileName, const sf::IntRect& rect);
     };
 
     using TextureCache = entt::resource_cache<Texture, TextureLoader>;
@@ -136,6 +140,8 @@ namespace game {
     struct DialogSpeaker {
         sf::String name;
         sf::Color nameColor { sf::Color::White };
+        std::optional<entt::resource<Texture>> portrait;
+        sf::Vector2f portraitScalingFactor { 1.0f, 1.0f };
     };
 
     struct DialogCollection {

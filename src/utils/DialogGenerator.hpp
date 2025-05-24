@@ -13,7 +13,9 @@ public:
     DialogGenerator() = default;
     ~DialogGenerator() = default;
 
-    DialogGenerator& addSpeaker(const sf::String& name, const sf::Color& color, size_t* outId = nullptr);
+    DialogGenerator& addSpeaker(const sf::String& name, const sf::Color& color,
+                                std::optional<entt::resource<Texture>> portrait = std::nullopt,
+                                sf::Vector2f portraitScalingFactor = {1.0f, 1.0f}, size_t* outId = nullptr);
     DialogGenerator& addLine(size_t speakerId, const sf::String& text);
 
     DialogCollection generate();
