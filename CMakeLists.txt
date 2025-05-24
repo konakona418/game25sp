@@ -5,6 +5,7 @@ option(BUILD_TESTS ON "Build tests")
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/vendors/SFML)
 add_subdirectory(${CMAKE_SOURCE_DIR}/vendors/entt)
+add_subdirectory(${CMAKE_SOURCE_DIR}/vendors/json)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
@@ -16,5 +17,5 @@ endif()
 
 add_executable(game25sp main.cpp ${SOURCES} ${HEADERS} ${TESTS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Audio EnTT::EnTT)
+target_link_libraries(${PROJECT_NAME} PRIVATE SFML::Graphics SFML::Audio EnTT::EnTT nlohmann_json::nlohmann_json)
 
