@@ -37,7 +37,18 @@ namespace game {
         size_t m_order;
     };
 
-    struct CRenderTargetComponent {};
+    struct CRenderTargetComponent {
+        CRenderTargetComponent() = default;
+        explicit CRenderTargetComponent(size_t targetId) : m_targetId(targetId) {}
+
+        static constexpr size_t GameComponent = 0;
+        static constexpr size_t UI = 1;
+
+        void setTargetId(size_t targetId) { m_targetId = targetId; }
+        [[nodiscard]] size_t getTargetId() const { return m_targetId; }
+    private:
+        size_t m_targetId { GameComponent };
+    };
 
     struct SpriteFrame {
         sf::Time duration;
@@ -153,8 +164,10 @@ namespace game {
 
     using TileIdType = uint32_t;
     struct Tile {
-        AnimatedFrames frames {};
+        SpriteFrame frame;
         TileIdType id {};
+
+        Tile(const SpriteFrame& frame, TileIdType id) : frame(frame), id(id) {}
     };
 
     struct SingleTileItem {
@@ -169,7 +182,7 @@ namespace game {
 
     struct CTiledRenderComponent {
         explicit CTiledRenderComponent(sf::Vector2f baseTilePixelSize) : m_tileControl(baseTilePixelSize) {}
-        void addTile(TileIdType id, AnimatedFrames frames);
+        void addTile(TileIdType id, const SpriteFrame& frame);
         void addTile(Tile tile);
 
         void addTile(TileIdType id, sf::Vector2i tilePlacement, sf::Vector2i tileSize);

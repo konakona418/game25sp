@@ -252,6 +252,7 @@ namespace game::prefab {
             .setAnchor(game::CLayout::Anchor::TopLeft())
             .build(container);
         SceneTreeUtils::attachSceneTreeComponents(container);
+        registry.emplace<game::CRenderTargetComponent>(container, game::CRenderTargetComponent::UI);
 
         //registry.emplace<game::CRenderComponent>(container);
         registry.emplace<game::CRenderLayerComponent>(container, RENDER_LAYER, 1);
@@ -277,6 +278,7 @@ namespace game::prefab {
 
         //registry.emplace<game::CRenderComponent>(text);
         registry.emplace<game::CRenderLayerComponent>(text, RENDER_LAYER, 2);
+        registry.emplace<game::CRenderTargetComponent>(text, game::CRenderTargetComponent::UI);
 
         auto font = loadFont();
         auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
@@ -299,6 +301,7 @@ namespace game::prefab {
 
         //registry.emplace<game::CRenderComponent>(text);
         registry.emplace<game::CRenderLayerComponent>(text, RENDER_LAYER, 2);
+        registry.emplace<game::CRenderTargetComponent>(text, game::CRenderTargetComponent::UI);
 
         auto font = loadFont();
         auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
@@ -319,6 +322,7 @@ namespace game::prefab {
                 .setAnchor(game::CLayout::Anchor::BottomRight())
                 .build(portrait);
         SceneTreeUtils::attachSceneTreeComponents(portrait);
+        registry.emplace<game::CRenderTargetComponent>(portrait, game::CRenderTargetComponent::UI);
 
         //registry.emplace<game::CRenderComponent>(container);
         registry.emplace<game::CRenderLayerComponent>(portrait, RENDER_LAYER, 0);

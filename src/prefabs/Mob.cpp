@@ -13,6 +13,7 @@
 #include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
 #include "Root.hpp"
+#include "components/Lighting.hpp"
 
 namespace game::prefab {
     Mob Mob::create() {
@@ -40,6 +41,7 @@ namespace game::prefab {
 
         registry.emplace<game::CRenderComponent>(entity);
         registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, renderOrderAccumulator++);
+        registry.emplace<game::CRenderTargetComponent>(entity, game::CRenderTargetComponent::GameComponent);
 
         auto animations = loadAnimationResources();
         registry.emplace<game::CAnimatedSpriteRenderComponent>(entity, (*animations)["idle"], true);
@@ -48,6 +50,8 @@ namespace game::prefab {
 
         registry.emplace<game::CScriptsComponent>(entity, delegate);
         registry.emplace<game::CVelocity>(entity);
+
+        registry.emplace<game::CLightingComponent>(entity, sf::Color(64, 96, 255, 255), 50.f);
 
         registry.emplace<game::prefab::GMobComponent>(entity, animations);
     }

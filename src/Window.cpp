@@ -15,6 +15,7 @@
 #include "systems/SceneControl.hpp"
 #include "systems/ScriptsControl.hpp"
 #include "systems/TweeningControl.hpp"
+#include "systems/LightingControl.hpp"
 
 namespace game {
     void Window::setVideoPreferences(const int fps, const bool vsync) {
@@ -46,6 +47,13 @@ namespace game {
 
         sf::Clock internalClock;
         internalClock.start();
+
+        sf::RenderTexture gameComponents(m_windowSize);
+        sf::RenderTexture ui(m_windowSize);
+        sf::RenderTexture illumination(m_windowSize);
+        sf::RenderTexture ambientIllumination(m_windowSize);
+
+        constexpr sf::Color ambientIlluminationColor(255, 255, 255, 160);
 
         while (m_window->isOpen()) {
             while (auto event = m_window->pollEvent()) {
@@ -81,10 +89,47 @@ namespace game {
 
             SMusicSystem::update();
 
+            // --- render pipeline --- //
+
+            // phase: illumination with light source
+            gameComponents.setView(m_window->getView());
+            gameComponents.clear(sf::Color::Black);
+            SRenderSystem::update(gameComponents, game::CRenderTargetComponent::GameComponent, deltaTime);
+
+            illumination.setView(m_window->getView());
+            illumination.clear(sf::Color::Transparent);
+            SLightingSystem::update(illumination);
+            illumination.display();
+
+            sf::Sprite illuminationSprite(illumination.getTexture());
+
+            ambientIllumination.setView(m_window->getView());
+            ambientIllumination.clear(ambientIlluminationColor);
+            ambientIllumination.display();
+
+            sf::Sprite ambientIlluminationSprite(ambientIllumination.getTexture());
+
+            gameComponents.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
+            gameComponents.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
+
+            gameComponents.display();
+
+            sf::Sprite gameComponentsSprite(gameComponents.getTexture());
+
+            ui.setView(m_window->getView());
+            ui.clear(sf::Color::Transparent);
+            SRenderSystem::update(ui, game::CRenderTargetComponent::UI, deltaTime);
+            ui.display();
+
+            sf::Sprite uiSprite(ui.getTexture());
+
             m_window->clear();
 
-            SRenderSystem::update(*m_window, deltaTime);
+            m_window->draw(gameComponentsSprite);
+            m_window->draw(uiSprite);
+
             m_window->display();
+            // --- end of render pipeline --- //
 
             SSceneUnmountSystem::update();
         }

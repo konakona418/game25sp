@@ -16,7 +16,7 @@ namespace sf {
 namespace game {
     class SRenderSystem {
     public:
-        static void update(sf::RenderTarget& target, sf::Time deltaTime);
+        static void update(sf::RenderTarget& target, size_t targetId, sf::Time deltaTime);
     };
 
     class RenderUtils {

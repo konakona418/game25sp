@@ -9,6 +9,7 @@
 #include "components/Collision.hpp"
 #include "components/Layout.hpp"
 #include "components/Scripts.hpp"
+#include "components/Lighting.hpp"
 #include "systems/CollisionControl.hpp"
 #include "systems/MovementControl.hpp"
 #include "systems/SceneControl.hpp"
@@ -108,6 +109,7 @@ game::prefab::Player::Player() : TreeLike() {
 
     registry.emplace<game::CRenderComponent>(entity);
     registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, 0);
+    registry.emplace<game::CRenderTargetComponent>(entity, game::CRenderTargetComponent::GameComponent);
 
     auto animations = loadAnimationResources();
     registry.emplace<game::CAnimatedSpriteRenderComponent>(entity, animations["idle"], true);
@@ -121,6 +123,8 @@ game::prefab::Player::Player() : TreeLike() {
     // on layer 1, collide with enemy bullet(2)
     registry.emplace<game::CCollisionLayerComponent>(entity,
         CollisionUtils::getCollisionMask(1), CollisionUtils::getCollisionMask(2));
+
+    registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 0, 255, 196), 100.f);
 
     registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
 }

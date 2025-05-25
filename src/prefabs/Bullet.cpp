@@ -12,6 +12,7 @@
 #include "components/Velocity.hpp"
 #include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
+#include "components/Lighting.hpp"
 
 namespace game::prefab {
 
@@ -46,6 +47,7 @@ namespace game::prefab {
 
         registry.emplace<game::CRenderComponent>(entity);
         registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, renderOrderAccumulator++);
+        registry.emplace<game::CRenderTargetComponent>(entity, game::CRenderTargetComponent::GameComponent);
 
         auto frame = loadTexture();
         registry.emplace<game::CSpriteRenderComponent>(entity, frame);
@@ -56,6 +58,8 @@ namespace game::prefab {
         // on layer 2, collide with player(1)
         registry.emplace<game::CCollisionLayerComponent>(entity,
             CollisionUtils::getCollisionMask(2), CollisionUtils::getCollisionMask(1));
+
+        registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 192, 203, 196), 12.f);
 
         registry.emplace<game::prefab::GBulletComponent>(entity);
     }

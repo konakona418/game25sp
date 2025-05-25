@@ -9,7 +9,7 @@
 #include "components/Render.hpp"
 #include "components/SceneTree.hpp"
 
-void game::SRenderSystem::update(sf::RenderTarget& target, sf::Time deltaTime) {
+void game::SRenderSystem::update(sf::RenderTarget& target, size_t targetId, sf::Time deltaTime) {
     auto& registry = game::getRegistry();
 
     registry.sort<CRenderLayerComponent>(
@@ -20,12 +20,17 @@ void game::SRenderSystem::update(sf::RenderTarget& target, sf::Time deltaTime) {
             return lhs.getLayer() < rhs.getLayer();
     });
 
-    auto commonView = registry.view<CGlobalTransform, CRenderComponent, CRenderLayerComponent>();
+    auto commonView = registry.view<CGlobalTransform, CRenderComponent, CRenderLayerComponent, CRenderTargetComponent>();
     // make sure that the ordering is applied.
     // see also: https://github.com/skypjack/entt/issues/752
     commonView.use<CRenderLayerComponent>();
 
     for (auto entity : commonView) {
+        size_t renderTargetId = commonView.get<CRenderTargetComponent>(entity).getTargetId();
+        if (renderTargetId != targetId) {
+            continue;
+        }
+
         auto globalTransform = commonView.get<CGlobalTransform>(entity);
         if (registry.any_of<CSpriteRenderComponent>(entity)) {
             registry.get<CSpriteRenderComponent>(entity).update(target, globalTransform);

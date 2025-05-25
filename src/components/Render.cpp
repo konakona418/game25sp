@@ -149,8 +149,8 @@ void game::CAnimatedSpriteRenderComponent::FrameControl::reset() {
     m_frameIndex = 0;
 }
 
-void game::CTiledRenderComponent::addTile(TileIdType id, AnimatedFrames frames) {
-    m_tileControl.m_tiles.insert({id, Tile {std::move(frames), id}});
+void game::CTiledRenderComponent::addTile(TileIdType id, const SpriteFrame& frame) {
+    m_tileControl.m_tiles.insert({id, Tile {frame, id}});
 }
 
 void game::CTiledRenderComponent::addTile(Tile tile) {
@@ -173,8 +173,8 @@ void game::CTiledRenderComponent::update(sf::RenderTarget& target, sf::Time delt
     for (auto& tileItem : m_tileControl.m_tileItemList) {
         auto tile = m_tileControl.getTileById(tileItem.tileId);
         if (!tileItem.sprite.has_value()) {
-            tileItem.sprite = sf::Sprite(tile.frames.frames[0]->rawTextureRef->texture);
-            tileItem.sprite->setTextureRect(tile.frames.frames[0]->textureRect.value());
+            tileItem.sprite = sf::Sprite(tile.frame.texture->rawTextureRef->texture);
+            tileItem.sprite->setTextureRect(tile.frame.texture->textureRect.value());
             // todo: implement tile animation
             tileItem.sprite->setOrigin(m_tileControl.m_baseTilePixelSize * 0.5f);
 
