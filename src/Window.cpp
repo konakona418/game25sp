@@ -140,6 +140,7 @@ namespace game {
             output.display();
 
             sf::Sprite outputSprite(output.getTexture());
+            outputSprite.setPosition({0.f, 0.f});
 
             m_window->clear();
 
@@ -193,9 +194,12 @@ namespace game {
     }
 
     void Window::keepViewportScale() const {
+        auto windowViewOrigin = m_window->getView().getCenter();
         auto view = m_logicalView;
         auto windowSize = m_window->getSize();
 
-        m_window->setView(getLetterboxView(view, windowSize));
+        auto letterboxed = getLetterboxView(view, windowSize);
+        letterboxed.setCenter(windowViewOrigin);
+        m_window->setView(letterboxed);
     }
 } // game
