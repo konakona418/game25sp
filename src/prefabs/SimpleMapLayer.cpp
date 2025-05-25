@@ -28,7 +28,7 @@ namespace game::prefab {
                 .setLocalPosition({0, 0})
                 .setSize({2048, 2048})
                 .setScale({1.0, 1.0})
-                .setAnchor(game::CLayout::Anchor::TopLeft())
+                .setAnchor(game::CLayout::Anchor::MiddleCenter())
                 .build(entity);
         game::SceneTreeUtils::attachSceneTreeComponents(entity);
 

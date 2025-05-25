@@ -16,6 +16,7 @@
 #include "utils/TextureGenerator.hpp"
 #include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
+#include "Window.hpp"
 
 void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
     auto& registry = game::getRegistry();
@@ -59,9 +60,24 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
 
     game::MovementUtils::flipHorizontal(entity, player.flipH);
 
+    constexpr float X_LIM = 1024.0;
+    constexpr float Y_LIM = 1024.0;
+    constexpr float clamping = 0.01f;
+
+    auto& localTransform = registry.get<game::CLocalTransform>(entity);
+    auto position = localTransform.getPosition();
     if (velocity.x != 0 || velocity.y != 0) {
-        game::MovementUtils::move(entity, velocity * 400.0f * deltaTime.asSeconds());
+        if (position.x < X_LIM && position.x > -X_LIM && position.y < Y_LIM && position.y > -Y_LIM) {
+            game::MovementUtils::move(entity, velocity * 400.0f * deltaTime.asSeconds());
+        } else {
+            game::MovementUtils::move(entity, velocity * 100.0f * deltaTime.asSeconds());
+            localTransform.setPosition({std::clamp(position.x, -X_LIM + clamping, X_LIM - clamping), std::clamp(position.y, -Y_LIM + clamping, Y_LIM - clamping)});
+        }
     }
+
+    auto& window = getGame().getWindow();
+    auto& globalTransform = registry.get<game::CGlobalTransform>(entity);
+    window.setViewCenter(globalTransform.getPosition());
 };
 
 void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
@@ -100,7 +116,7 @@ game::prefab::Player::Player() : TreeLike() {
     m_entity = entity;
 
     game::MovementUtils::builder()
-        .setLocalPosition({100.0, 100.0})
+        .setLocalPosition({0.0, 0.0})
         .setSize({32, 48})
         .setScale({3.0, 3.0})
         .setAnchor(game::CLayout::Anchor::MiddleCenter())

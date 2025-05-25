@@ -42,6 +42,9 @@ namespace game {
         m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode(m_windowSize), m_windowTitle);
         setVideoPreferences(m_videoPreference.fps, m_videoPreference.vsync);
 
+        m_logicalView = m_window->getView();
+        m_logicalView.setCenter({0, 0}); // place the view at the center of the window
+
         auto& game = getGame();
         auto& keyboard = game.getKeyboard();
 
@@ -52,6 +55,7 @@ namespace game {
         sf::RenderTexture ui(m_windowSize);
         sf::RenderTexture illumination(m_windowSize);
         sf::RenderTexture ambientIllumination(m_windowSize);
+        sf::RenderTexture output(m_windowSize);
 
         constexpr sf::Color ambientIlluminationColor(255, 255, 255, 160);
 
@@ -91,23 +95,29 @@ namespace game {
 
             // --- render pipeline --- //
 
+            auto view = m_logicalView;
+
             // phase: illumination with light source
-            gameComponents.setView(m_window->getView());
+            gameComponents.setView(view);
             gameComponents.clear(sf::Color::Black);
             SRenderSystem::update(gameComponents, game::CRenderTargetComponent::GameComponent, deltaTime);
 
-            illumination.setView(m_window->getView());
+            sf::Vector2f positioningOffset = m_window->mapPixelToCoords(sf::Vector2i(0, 0), m_logicalView);
+
+            illumination.setView(view);
             illumination.clear(sf::Color::Transparent);
             SLightingSystem::update(illumination);
             illumination.display();
 
             sf::Sprite illuminationSprite(illumination.getTexture());
+            illuminationSprite.setPosition(positioningOffset); // it just works.
 
-            ambientIllumination.setView(m_window->getView());
+            ambientIllumination.setView(view);
             ambientIllumination.clear(ambientIlluminationColor);
             ambientIllumination.display();
 
             sf::Sprite ambientIlluminationSprite(ambientIllumination.getTexture());
+            ambientIlluminationSprite.setPosition(positioningOffset);
 
             gameComponents.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
             gameComponents.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
@@ -116,17 +126,24 @@ namespace game {
 
             sf::Sprite gameComponentsSprite(gameComponents.getTexture());
 
-            ui.setView(m_window->getView());
             ui.clear(sf::Color::Transparent);
             SRenderSystem::update(ui, game::CRenderTargetComponent::UI, deltaTime);
             ui.display();
 
+            // todo: handle ui sprite positioning
             sf::Sprite uiSprite(ui.getTexture());
+            uiSprite.setPosition({0.f, 0.f});
+
+            output.clear(sf::Color::Transparent);
+            output.draw(gameComponentsSprite);
+            output.draw(uiSprite);
+            output.display();
+
+            sf::Sprite outputSprite(output.getTexture());
 
             m_window->clear();
 
-            m_window->draw(gameComponentsSprite);
-            m_window->draw(uiSprite);
+            m_window->draw(outputSprite);
 
             m_window->display();
             // --- end of render pipeline --- //
@@ -137,7 +154,7 @@ namespace game {
 
     // letterboxing code from:
     // https://github.com/SFML/SFML/wiki/Source%3A-Letterbox-effect-using-a-view
-    sf::View getLetterboxView(sf::View view, sf::Vector2u windowSize) {
+    sf::View Window::getLetterboxView(sf::View view, sf::Vector2u windowSize) {
 
         // Compares the aspect ratio of the window to the aspect ratio of the view,
         // and sets the view's viewport accordingly in order to achieve a letterbox effect.
@@ -160,9 +177,7 @@ namespace game {
         if (horizontalSpacing) {
             sizeX = viewRatio / windowRatio;
             posX = (1 - sizeX) / 2.f;
-        }
-
-        else {
+        } else {
             sizeY = windowRatio / viewRatio;
             posY = (1 - sizeY) / 2.f;
         }
@@ -178,7 +193,7 @@ namespace game {
     }
 
     void Window::keepViewportScale() const {
-        auto view = m_window->getView();
+        auto view = m_logicalView;
         auto windowSize = m_window->getSize();
 
         m_window->setView(getLetterboxView(view, windowSize));

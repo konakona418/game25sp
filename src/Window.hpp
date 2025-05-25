@@ -15,10 +15,12 @@ namespace game {
         Window() : m_windowSize(1280.f, 720.f), m_aspectRatio(1280.f / 720.f) {};
 
         explicit Window(const sf::Vector2u& windowSize)
-            : m_windowSize(windowSize), m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)) {}
+            : m_windowSize(windowSize),
+            m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)) {}
 
         Window(const sf::Vector2u& windowSize, sf::String title)
-            : m_windowSize(windowSize), m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)), m_windowTitle(std::move(title)) {}
+            : m_windowSize(windowSize),
+            m_aspectRatio(static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y)), m_windowTitle(std::move(title)) {}
 
         Window(const Window&) = delete;
         Window& operator=(const Window&) = delete;
@@ -35,6 +37,15 @@ namespace game {
 
         void run();
 
+        void setViewCenter(sf::Vector2f center) {
+            /*auto view = m_window->getView();
+            view.setCenter(center);
+            m_window->setView(view);*/
+            m_logicalView.setCenter(center);
+        }
+
+        sf::RenderWindow* getRawWindow() { return m_window.get(); }
+
     private:
         struct VideoPreference {
             int fps = 60;
@@ -46,8 +57,10 @@ namespace game {
         sf::String m_windowTitle = u8"Game";
         float m_aspectRatio { 0 };
         VideoPreference m_videoPreference;
+        sf::View m_logicalView;
 
         void keepViewportScale() const;
+        static sf::View getLetterboxView(sf::View view, sf::Vector2u windowSize);
     };
 } // game
 

@@ -62,7 +62,11 @@ namespace game::prefab {
     }
 
     void DialogBox::loadDialog(const std::string& resourceName, const DialogCollection& dialogCollection) {
-        auto dialogResource = ResourceManager::getDialogCache().load(entt::hashed_string { resourceName.c_str() }, dialogCollection).first->second;
+        auto dialogResourceResult = ResourceManager::getDialogCache().load(entt::hashed_string { resourceName.c_str() }, dialogCollection);
+        auto dialogResource = dialogResourceResult.first->second;
+        if (!dialogResourceResult.second) {
+            getLogger().logError("Attempted to load a resource with the same name as an existing resource. Is this a desired behavior?");
+        }
         loadDialog(dialogResource);
     }
 
@@ -258,7 +262,7 @@ namespace game::prefab {
         registry.emplace<game::CRenderLayerComponent>(container, RENDER_LAYER, 1);
 
         auto rectShape = new sf::RectangleShape();
-        rectShape->setFillColor(sf::Color(255, 255, 255, 196));
+        rectShape->setFillColor(sf::Color(255, 255, 255, 230));
 
         auto uniqueShape = std::unique_ptr<sf::Shape>(rectShape);
         registry.emplace<game::CShapeRenderComponent>(container, std::move(uniqueShape));
