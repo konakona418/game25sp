@@ -60,19 +60,11 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
 
     game::MovementUtils::flipHorizontal(entity, player.flipH);
 
-    constexpr float X_LIM = 1024.0;
-    constexpr float Y_LIM = 1024.0;
-    constexpr float clamping = 0.01f;
-
     auto& localTransform = registry.get<game::CLocalTransform>(entity);
     auto position = localTransform.getPosition();
-    if (velocity.x != 0 || velocity.y != 0) {
-        if (position.x < X_LIM && position.x > -X_LIM && position.y < Y_LIM && position.y > -Y_LIM) {
-            game::MovementUtils::move(entity, velocity * 400.0f * deltaTime.asSeconds());
-        } else {
-            game::MovementUtils::move(entity, velocity * 100.0f * deltaTime.asSeconds());
-            localTransform.setPosition({std::clamp(position.x, -X_LIM + clamping, X_LIM - clamping), std::clamp(position.y, -Y_LIM + clamping, Y_LIM - clamping)});
-        }
+    auto destination = localTransform.getPosition() + velocity * 400.0f * deltaTime.asSeconds();
+    if (canMoveTo(destination)) {
+        game::MovementUtils::move(entity, destination - position);
     }
 
     auto& window = getGame().getWindow();
@@ -118,7 +110,7 @@ game::prefab::Player::Player() : TreeLike() {
     game::MovementUtils::builder()
         .setLocalPosition({0.0, 0.0})
         .setSize({32, 48})
-        .setScale({3.0, 3.0})
+        .setScale({1.5, 1.5})
         .setAnchor(game::CLayout::Anchor::MiddleCenter())
         .build(entity);
     game::SceneTreeUtils::attachSceneTreeComponents(entity);
@@ -135,7 +127,7 @@ game::prefab::Player::Player() : TreeLike() {
     registry.emplace<game::CScriptsComponent>(entity, delegate);
 
     registry.emplace<game::CCollisionComponent>(entity);
-    registry.emplace<game::CCollisionAABBComponent>(entity, sf::Vector2f {32.f, 48.f});
+    registry.emplace<game::CCollisionAABBComponent>(entity, sf::Vector2f {16.f, 24.f});
     // on layer 1, collide with enemy bullet(2)
     registry.emplace<game::CCollisionLayerComponent>(entity,
         CollisionUtils::getCollisionMask(1), CollisionUtils::getCollisionMask(2));
@@ -170,4 +162,33 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
     };
 
     return *animations;
+}
+
+std::shared_ptr<sf::Image> game::prefab::Player::loadCollisionTexture() {
+    static game::Lazy<std::shared_ptr<sf::Image>> collisionTexture {
+        [] {
+            auto image = std::make_shared<sf::Image>();
+            if (!image->loadFromFile("assets/collision.png")) {
+                game::getLogger().logError("Failed to load collision texture");
+            }
+            return image;
+        }
+    };
+    return *collisionTexture;
+}
+
+bool game::prefab::Player::canMoveTo(sf::Vector2f target) {
+    auto collisionTexture = loadCollisionTexture();
+    constexpr sf::Vector2f originOffset = { X_LIM, Y_LIM };
+
+    if (target.x < -X_LIM || target.x > X_LIM || target.y < -Y_LIM || target.y > Y_LIM) {
+        return false;
+    }
+
+    auto pixel = collisionTexture->getPixel({static_cast<uint32_t>(target.x + originOffset.x), static_cast<uint32_t>(target.y + originOffset.y)});
+    if (pixel.r != 0) {
+        return true;
+    }
+
+    return false;
 }

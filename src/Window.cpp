@@ -19,7 +19,7 @@
 
 namespace game {
     void Window::setVideoPreferences(const int fps, const bool vsync) {
-        m_videoPreference = { fps, vsync };
+        m_videoPreference = { fps, vsync, m_videoPreference.zoomFactor };
         if (m_window != nullptr) {
             m_window->setFramerateLimit(fps);
             m_window->setVerticalSyncEnabled(vsync);
@@ -96,13 +96,16 @@ namespace game {
             // --- render pipeline --- //
 
             auto view = m_logicalView;
+            auto zoomedView = m_logicalView; // it just works
+            zoomedView.zoom(m_videoPreference.zoomFactor);
+            // todo: for factors that great than 1.0, weird things happen
 
             // phase: illumination with light source
-            gameComponents.setView(view);
+            gameComponents.setView(zoomedView);
             gameComponents.clear(sf::Color::Black);
             SRenderSystem::update(gameComponents, game::CRenderTargetComponent::GameComponent, deltaTime);
 
-            sf::Vector2f positioningOffset = m_window->mapPixelToCoords(sf::Vector2i(0, 0), m_logicalView);
+            sf::Vector2f positioningOffset = m_window->mapPixelToCoords(sf::Vector2i(0, 0), view);
 
             illumination.setView(view);
             illumination.clear(sf::Color::Transparent);
@@ -130,7 +133,6 @@ namespace game {
             SRenderSystem::update(ui, game::CRenderTargetComponent::UI, deltaTime);
             ui.display();
 
-            // todo: handle ui sprite positioning
             sf::Sprite uiSprite(ui.getTexture());
             uiSprite.setPosition({0.f, 0.f});
 
@@ -201,5 +203,10 @@ namespace game {
         auto letterboxed = getLetterboxView(view, windowSize);
         letterboxed.setCenter(windowViewOrigin);
         m_window->setView(letterboxed);
+    }
+
+    void Window::setZoomFactor(float zoomFactor) {
+        getLogger().logInfo("Setting zoom factor to: " + std::to_string(zoomFactor));
+        m_videoPreference.zoomFactor = zoomFactor;
     }
 } // game

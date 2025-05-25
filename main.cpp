@@ -45,6 +45,8 @@ int main() {
     game::prefab::Root root = game::prefab::Root::create();
     game::getRegistry().ctx().emplace<game::prefab::Root>(root);
 
+    game.getWindow().setZoomFactor(0.5f);
+
     game::prefab::SimpleMapLayer::create(0);
     game::prefab::SimpleMapLayer::create(96);
 

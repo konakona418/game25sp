@@ -9,6 +9,7 @@
 
 #include "components/Render.hpp"
 #include "systems/SceneControl.hpp"
+#include "ResourceManager.hpp"
 
 
 namespace game {
@@ -44,9 +45,15 @@ namespace game::prefab {
 
     private:
         static constexpr size_t RENDER_LAYER = 16;
+        static constexpr float X_LIM = 1024.0;
+        static constexpr float Y_LIM = 1024.0;
+        static constexpr float clamping = 0.01f;
+
+        static bool canMoveTo(sf::Vector2f target);
 
         Player();
         static std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> loadAnimationResources();
+        static std::shared_ptr<sf::Image> loadCollisionTexture();
         static void onUpdate(entt::entity entity, sf::Time deltaTime);
         static void onCollision(game::EOnCollisionEvent);
     };

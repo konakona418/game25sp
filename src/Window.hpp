@@ -29,6 +29,8 @@ namespace game {
 
         void setVideoPreferences(int fps, bool vsync);
 
+        void setZoomFactor(float zoomFactor);
+
         void setWindowTitle(sf::String title);
 
         void setWindowSize(const sf::Vector2u& windowSize);
@@ -50,6 +52,7 @@ namespace game {
         struct VideoPreference {
             int fps = 60;
             bool vsync = false;
+            float zoomFactor = 1.f;
         };
 
         std::unique_ptr<sf::RenderWindow> m_window { nullptr };
