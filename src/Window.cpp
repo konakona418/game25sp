@@ -67,7 +67,21 @@ namespace game {
         sf::RenderTexture ui(m_windowSize);
         sf::RenderTexture illumination(m_windowSize);
         sf::RenderTexture ambientIllumination(m_windowSize);
-        sf::RenderTexture output(m_windowSize);
+        sf::RenderTexture primaryOutput(m_windowSize);
+
+        sf::RenderTexture postProcessingCrt(m_windowSize);
+        sf::RenderTexture postProcessingBloomBrightness(m_windowSize);
+        sf::RenderTexture postProcessingBloomBlurV(m_windowSize);
+        sf::RenderTexture postProcessingBloomBlurH(m_windowSize);
+
+        sf::RenderTexture finalOutput(m_windowSize);
+
+        entt::resource<sf::Shader> crtShader = ResourceManager::getShaderCache()
+                .load(entt::hashed_string { "crtShader" }, "assets/shader/common.vert", "assets/shader/crt.frag").first->second;
+        entt::resource<sf::Shader> bloomShader = ResourceManager::getShaderCache()
+                .load(entt::hashed_string { "bloomBrightness" }, "assets/shader/common.vert", "assets/shader/bloom/brightness.frag").first->second;
+        entt::resource<sf::Shader> bloomBlurShader = ResourceManager::getShaderCache()
+                .load(entt::hashed_string { "bloomBlur" }, "assets/shader/common.vert", "assets/shader/bloom/gaussian.frag").first->second;
 
         constexpr sf::Color ambientIlluminationColor(255, 255, 255, 160);
 
@@ -139,6 +153,49 @@ namespace game {
 
             sf::Sprite gameComponentsSprite(gameComponents.getTexture());
 
+            primaryOutput.clear(sf::Color::Transparent);
+            primaryOutput.draw(gameComponentsSprite);
+            primaryOutput.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
+            primaryOutput.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
+            //primaryOutput.draw(uiSprite);
+            primaryOutput.display();
+            sf::Sprite primaryOutputSprite(primaryOutput.getTexture());
+            primaryOutputSprite.setPosition({0.f, 0.f});
+
+
+            postProcessingCrt.clear(sf::Color::Transparent);
+            crtShader->setUniform("u_texture", sf::Shader::CurrentTexture);
+            postProcessingCrt.draw(primaryOutputSprite, &*crtShader);
+            postProcessingCrt.display();
+            sf::Sprite postProcessingCrtSprite(postProcessingCrt.getTexture());
+            postProcessingCrtSprite.setPosition({0.f, 0.f});
+
+            postProcessingBloomBrightness.clear(sf::Color::Transparent);
+            bloomShader->setUniform("u_texture", sf::Shader::CurrentTexture);
+            bloomShader->setUniform("u_brightness_threshold", 0.55f);
+            postProcessingBloomBrightness.draw(postProcessingCrtSprite, &*bloomShader);
+            postProcessingBloomBrightness.display();
+            sf::Sprite postProcessingBloomBrightnessSprite(postProcessingBloomBrightness.getTexture());
+            postProcessingBloomBrightnessSprite.setPosition({0.f, 0.f});
+
+            postProcessingBloomBlurH.clear(sf::Color::Transparent);
+            bloomBlurShader->setUniform("u_texture", sf::Shader::CurrentTexture);
+            bloomBlurShader->setUniform("u_resolution", sf::Vector2f(m_windowSize));
+            bloomBlurShader->setUniform("u_direction", sf::Vector2f(1.f, 0.f));
+            postProcessingBloomBlurH.draw(postProcessingBloomBrightnessSprite, &*bloomBlurShader);
+            postProcessingBloomBlurH.display();
+            sf::Sprite postProcessingBloomBlurHSprite(postProcessingBloomBlurH.getTexture());
+            postProcessingBloomBlurHSprite.setPosition({0.f, 0.f});
+
+            postProcessingBloomBlurV.clear(sf::Color::Transparent);
+            bloomBlurShader->setUniform("u_texture", sf::Shader::CurrentTexture);
+            bloomBlurShader->setUniform("u_resolution", sf::Vector2f(m_windowSize));
+            bloomBlurShader->setUniform("u_direction", sf::Vector2f(0.f, 1.f));
+            postProcessingBloomBlurV.draw(postProcessingBloomBlurHSprite, &*bloomBlurShader);
+            postProcessingBloomBlurV.display();
+            sf::Sprite postProcessingBloomBlurVSprite(postProcessingBloomBlurV.getTexture());
+            postProcessingBloomBlurVSprite.setPosition({0.f, 0.f});
+
             ui.clear(sf::Color::Transparent);
             SRenderSystem::update(ui, game::CRenderTargetComponent::UI, deltaTime);
             ui.display();
@@ -146,15 +203,13 @@ namespace game {
             sf::Sprite uiSprite(ui.getTexture());
             uiSprite.setPosition({0.f, 0.f});
 
-            output.clear(sf::Color::Transparent);
-            output.draw(gameComponentsSprite);
-            output.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
-            output.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
-            output.draw(uiSprite);
-            output.display();
-
-            sf::Sprite outputSprite(output.getTexture());
-            outputSprite.setPosition({0.f, 0.f});
+            finalOutput.clear(sf::Color::Transparent);
+            finalOutput.draw(postProcessingCrtSprite);
+            finalOutput.draw(postProcessingBloomBlurVSprite, sf::RenderStates(sf::BlendAdd));
+            finalOutput.draw(uiSprite);
+            finalOutput.display();
+            sf::Sprite finalOutputSprite(finalOutput.getTexture());
+            finalOutputSprite.setPosition({0.f, 0.f});
 
             if (fpsSampleClock.getElapsedTime() > sf::seconds(FPS_SAMPLE_INTERVAL)) {
                 auto fps = 1.f / deltaTime.asSeconds();
@@ -169,7 +224,8 @@ namespace game {
 
             m_window->clear();
 
-            m_window->draw(outputSprite);
+            m_window->draw(finalOutputSprite);
+
             m_window->draw(fpsText);
 
             m_window->display();

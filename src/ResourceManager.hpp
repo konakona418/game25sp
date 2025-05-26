@@ -14,6 +14,7 @@
 #include "components/Render.hpp"
 #include "SFML/Graphics/Font.hpp"
 #include "SFML/Graphics/Texture.hpp"
+#include "SFML/Graphics/Shader.hpp"
 
 
 namespace game {
@@ -166,6 +167,28 @@ namespace game {
 
     using DialogCache = entt::resource_cache<DialogCollection, DialogLoader>;
 
+    struct ShaderLoader {
+        using result_type = std::shared_ptr<sf::Shader>;
+
+        result_type operator()(const std::string& fileName, sf::Shader::Type type) const {
+            auto shader = std::make_shared<sf::Shader>();
+            if (!shader->loadFromFile(fileName, type)) {
+                throw std::runtime_error("Failed to load shader: " + fileName);
+            }
+            return shader;
+        }
+
+        result_type operator()(const std::string& vertFileName, const std::string& fragFileName) {
+            auto shader = std::make_shared<sf::Shader>();
+            if (!shader->loadFromFile(vertFileName, fragFileName)) {
+                throw std::runtime_error("Failed to load shader: " + vertFileName + " " + fragFileName);
+            }
+            return shader;
+        }
+    };
+
+    using ShaderCache = entt::resource_cache<sf::Shader, ShaderLoader>;
+
     struct ResourceManager {
         ResourceManager() = default;
 
@@ -201,6 +224,11 @@ namespace game {
 
         static DialogCache& getDialogCache() {
             static DialogCache cache;
+            return cache;
+        }
+
+        static ShaderCache& getShaderCache() {
+            static ShaderCache cache;
             return cache;
         }
     };
