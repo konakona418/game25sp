@@ -71,6 +71,7 @@ namespace game {
         sf::RenderTexture illumination(m_windowSize);
         sf::RenderTexture ambientIllumination(m_windowSize);
         sf::RenderTexture primaryOutput(m_windowSize);
+        sf::RenderTexture pixelated(m_windowSize);
 
         sf::RenderTexture postProcessingCrt(m_windowSize);
         sf::RenderTexture postProcessingBloomBrightness(m_windowSize);
@@ -79,6 +80,8 @@ namespace game {
 
         sf::RenderTexture finalOutput(m_windowSize);
 
+        entt::resource<sf::Shader> pixelShader = ResourceManager::getShaderCache()
+                .load(entt::hashed_string { "pixelShader" }, "assets/shader/common.vert", "assets/shader/pixel.frag").first->second;
         entt::resource<sf::Shader> crtShader = ResourceManager::getShaderCache()
                 .load(entt::hashed_string { "crtShader" }, "assets/shader/common.vert", "assets/shader/crt.frag").first->second;
         entt::resource<sf::Shader> bloomShader = ResourceManager::getShaderCache()
@@ -160,11 +163,21 @@ namespace game {
             sf::Sprite primaryOutputSprite(primaryOutput.getTexture());
             primaryOutputSprite.setPosition({0.f, 0.f});
 
+            // phase: pixelation
+            pixelated.clear(sf::Color::Transparent);
+            pixelShader->setUniform("u_texture", sf::Shader::CurrentTexture);
+            pixelShader->setUniform("u_resolution", sf::Vector2f(m_windowSize));
+            pixelShader->setUniform("u_pixel_size", sf::Vector2f { 1.5f, 1.5f });
+            pixelated.draw(primaryOutputSprite, &*pixelShader);
+            pixelated.display();
+            sf::Sprite pixelatedSprite(pixelated.getTexture());
+            pixelatedSprite.setPosition({0.f, 0.f});
+
             // phase: post-processing - add crt effects
             postProcessingCrt.clear(sf::Color::Transparent);
             crtShader->setUniform("u_texture", sf::Shader::CurrentTexture);
             crtShader->setUniform("u_time", static_cast<float>(crtScanlineClock.getElapsedTime().asMilliseconds()));
-            postProcessingCrt.draw(primaryOutputSprite, &*crtShader);
+            postProcessingCrt.draw(pixelatedSprite, &*crtShader);
             postProcessingCrt.display();
             sf::Sprite postProcessingCrtSprite(postProcessingCrt.getTexture());
             postProcessingCrtSprite.setPosition({0.f, 0.f});
