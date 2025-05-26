@@ -95,8 +95,7 @@ namespace game {
 
             // --- render pipeline --- //
 
-            auto view = m_logicalView;
-            auto zoomedView = m_logicalView; // it just works
+            auto zoomedView = m_logicalView;
             zoomedView.zoom(m_videoPreference.zoomFactor);
             // todo: for factors that great than 1.0, weird things happen
 
@@ -105,25 +104,25 @@ namespace game {
             gameComponents.clear(sf::Color::Black);
             SRenderSystem::update(gameComponents, game::CRenderTargetComponent::GameComponent, deltaTime);
 
-            sf::Vector2f positioningOffset = m_window->mapPixelToCoords(sf::Vector2i(0, 0), view);
+            //sf::Vector2f positioningOffset = m_window->mapPixelToCoords(sf::Vector2i(0, 0), view);
 
-            illumination.setView(view);
+            illumination.setView(zoomedView);
             illumination.clear(sf::Color::Transparent);
             SLightingSystem::update(illumination);
             illumination.display();
 
             sf::Sprite illuminationSprite(illumination.getTexture());
-            illuminationSprite.setPosition(positioningOffset); // it just works.
+            //illuminationSprite.setPosition(positioningOffset); // it just works.
 
-            ambientIllumination.setView(view);
+            ambientIllumination.setView(zoomedView);
             ambientIllumination.clear(ambientIlluminationColor);
             ambientIllumination.display();
 
             sf::Sprite ambientIlluminationSprite(ambientIllumination.getTexture());
-            ambientIlluminationSprite.setPosition(positioningOffset);
+            //ambientIlluminationSprite.setPosition(positioningOffset);
 
-            gameComponents.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
-            gameComponents.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
+            //gameComponents.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
+            //gameComponents.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
 
             gameComponents.display();
 
@@ -138,6 +137,8 @@ namespace game {
 
             output.clear(sf::Color::Transparent);
             output.draw(gameComponentsSprite);
+            output.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
+            output.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
             output.draw(uiSprite);
             output.display();
 
