@@ -14,6 +14,7 @@
 #include "utils/MovementUtils.hpp"
 #include "Root.hpp"
 #include "components/Lighting.hpp"
+#include "components/Collision.hpp"
 
 namespace game::prefab {
     Mob Mob::create() {
@@ -50,6 +51,12 @@ namespace game::prefab {
 
         registry.emplace<game::CScriptsComponent>(entity, delegate);
         registry.emplace<game::CVelocity>(entity);
+
+        registry.emplace<game::CCollisionComponent>(entity);
+        registry.emplace<game::CCollisionCircleComponent>(entity, 32.f);
+        // on layer 4, collide with player bullets(3)
+        registry.emplace<game::CCollisionLayerComponent>(entity,
+                                                         CollisionUtils::getCollisionMask(4), CollisionUtils::getCollisionMask(3));
 
         registry.emplace<game::CLightingComponent>(entity, sf::Color(64, 96, 255, 255), 50.f);
 

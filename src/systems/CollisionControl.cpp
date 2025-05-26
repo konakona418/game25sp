@@ -15,6 +15,10 @@ namespace game {
         auto view = registry.view<CCollisionComponent, CCollisionLayerComponent>();
         for (auto it1 = view.begin(); it1 != view.end(); ++it1) {
             for (auto it2 = std::next(it1); it2 != view.end(); ++it2) {
+                if (!registry.valid(*it1) || !registry.valid(*it2)) {
+                    getLogger().logWarn("CollisionSystem: Invalid entity");
+                    continue;
+                }
                 auto& layer1 = view.get<CCollisionLayerComponent>(*it1);
                 auto& layer2 = view.get<CCollisionLayerComponent>(*it2);
 

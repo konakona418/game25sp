@@ -331,3 +331,11 @@ void game::SSceneUnmountSystem::update() {
 void game::SSceneUnmountSystem::unmount(entt::entity entity) {
     SceneTreeUtils::unmount(entity);
 }
+
+void game::UnmountUtils::queueUnmount(entt::entity entity) {
+    auto& registry = game::getRegistry();
+    if (registry.any_of<CUnmount>(entity)) {
+        return;
+    }
+    registry.emplace<CUnmount>(entity);
+}

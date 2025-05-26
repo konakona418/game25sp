@@ -4,6 +4,7 @@
 
 #include "Player.hpp"
 
+#include "PlayerBullet.hpp"
 #include "Bullet.hpp"
 #include "Game.hpp"
 #include "components/Collision.hpp"
@@ -68,8 +69,17 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
     }
 
     auto& window = getGame().getWindow();
-    auto& globalTransform = registry.get<game::CGlobalTransform>(entity);
-    window.setViewCenter(globalTransform.getPosition());
+    auto lastCameraPosition = window.getViewCenter();
+    window.setViewCenter(lerp(lastCameraPosition, destination, 0.1f, deltaTime));
+
+    if (keyboard.isKeyPressed(sf::Keyboard::Key::X) && player.attackCoolDown.getElapsedTime() > ATTACK_COOLDOWN) {
+        player.attackKeyDown = true;
+        player.attackCoolDown.restart();
+    }
+    if (keyboard.isKeyReleased(sf::Keyboard::Key::X) && player.attackKeyDown) {
+        game::prefab::PlayerBullet::create(position);
+        player.attackKeyDown = false;
+    }
 };
 
 void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
@@ -82,14 +92,14 @@ void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
         game::prefab::GBulletComponent>(entity1, entity2);
     if (pair) {
         auto& playerComponent = registry.get<game::prefab::GPlayerComponent>(pair->first);
-        game::SceneTreeUtils::unmount(pair->second);
+        UnmountUtils::queueUnmount(pair->second);
         playerComponent.health -= 10;
         game::getLogger().logDebug("Player health: " + std::to_string(playerComponent.health));
 
         game::getEventDispatcher().trigger<EOnPlayerDamageEvent>({ pair->first, playerComponent.health });
 
         if (playerComponent.health <= 0) {
-            game::SceneTreeUtils::unmount(pair->first);
+            UnmountUtils::queueUnmount(pair->first);
             game::getLogger().logInfo("Player died!");
             game::getEventDispatcher().trigger<EOnPlayerDeathEvent>({ pair->first });
         }
@@ -134,7 +144,8 @@ game::prefab::Player::Player() : TreeLike() {
 
     registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 0, 255, 196), 100.f);
 
-    registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
+    auto& playerComponent = registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
+    playerComponent.attackCoolDown.restart();
 }
 
 std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::prefab::Player::loadAnimationResources() {

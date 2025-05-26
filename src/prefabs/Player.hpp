@@ -11,6 +11,8 @@
 #include "systems/SceneControl.hpp"
 #include "ResourceManager.hpp"
 
+#include "SFML/System/Clock.hpp"
+
 
 namespace game {
     struct EOnCollisionEvent;
@@ -35,6 +37,9 @@ namespace game::prefab {
 
         float health = 100.f;
 
+        bool attackKeyDown { false };
+        sf::Clock attackCoolDown;
+
         explicit GPlayerComponent(std::unordered_map<std::string, entt::resource<AnimatedFrames>> animations)
             : animations(std::move(animations)) {};
     };
@@ -47,7 +52,8 @@ namespace game::prefab {
         static constexpr size_t RENDER_LAYER = 16;
         static constexpr float X_LIM = 1024.0;
         static constexpr float Y_LIM = 1024.0;
-        static constexpr float clamping = 0.01f;
+        static constexpr float DAMPING_FACTOR = 0.1f;
+        static constexpr sf::Time ATTACK_COOLDOWN = sf::seconds(2.f);
 
         static bool canMoveTo(sf::Vector2f target);
 

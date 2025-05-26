@@ -9,6 +9,7 @@
 
 #include "SFML/System/String.hpp"
 #include "SFML/System/Vector2.hpp"
+#include "SFML/System/Time.hpp"
 
 namespace game {
     class Game;
@@ -59,6 +60,14 @@ namespace game {
         }
         return std::nullopt;
     }
+
+    float lerp(float from, float dest, float damping);
+
+    sf::Vector2f lerp(sf::Vector2f from, sf::Vector2f dest, float damping);
+
+    float lerp(float from, float dest, float damping, sf::Time deltaTime);
+
+    sf::Vector2f lerp(sf::Vector2f from, sf::Vector2f dest, float damping, sf::Time deltaTime);
 }
 
 #endif //COMMON_HPP

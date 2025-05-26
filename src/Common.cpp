@@ -56,5 +56,19 @@ namespace game {
         return random(0, 1) > chance;
     }
 
+    float lerp(float from, float dest, float damping) {
+        return from + (dest - from) * damping;
+    }
 
+    sf::Vector2f lerp(sf::Vector2f from, sf::Vector2f dest, float damping) {
+        return from + (dest - from) * damping;
+    }
+
+    float lerp(float from, float dest, float damping, sf::Time deltaTime) {
+        return lerp(from, dest, 1.f - std::powf(damping, deltaTime.asSeconds()));
+    }
+
+    sf::Vector2f lerp(sf::Vector2f from, sf::Vector2f dest, float damping, sf::Time deltaTime) {
+        return lerp(from, dest, 1.f - std::powf(damping, deltaTime.asSeconds()));
+    }
 }

@@ -46,6 +46,10 @@ namespace game {
             m_logicalView.setCenter(center);
         }
 
+        sf::Vector2f getViewCenter() const {
+            return m_logicalView.getCenter();
+        }
+
         sf::RenderWindow* getRawWindow() { return m_window.get(); }
 
     private:

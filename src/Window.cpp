@@ -48,6 +48,18 @@ namespace game {
         auto& game = getGame();
         auto& keyboard = game.getKeyboard();
 
+        // fps display
+        constexpr float FPS_LIMIT = 50.f;
+        constexpr float FPS_SAMPLE_INTERVAL = 0.5f;
+        auto font = ResourceManager::getFontCache()
+                .load(entt::hashed_string { "NotoSansSC" },
+                      "assets/NotoSansSC-Regular.ttf").first->second;
+        sf::Text fpsText(font);
+        fpsText.setPosition({ 24.f, 24.f });
+        fpsText.setCharacterSize(20);
+        sf::Clock fpsSampleClock;
+        fpsSampleClock.start();
+
         sf::Clock internalClock;
         internalClock.start();
 
@@ -97,7 +109,6 @@ namespace game {
 
             auto zoomedView = m_logicalView;
             zoomedView.zoom(m_videoPreference.zoomFactor);
-            // todo: for factors that great than 1.0, weird things happen
 
             // phase: illumination with light source
             gameComponents.setView(zoomedView);
@@ -145,9 +156,21 @@ namespace game {
             sf::Sprite outputSprite(output.getTexture());
             outputSprite.setPosition({0.f, 0.f});
 
+            if (fpsSampleClock.getElapsedTime() > sf::seconds(FPS_SAMPLE_INTERVAL)) {
+                auto fps = 1.f / deltaTime.asSeconds();
+                if (fps < FPS_LIMIT) {
+                    fpsText.setFillColor(sf::Color::Red);
+                } else {
+                    fpsText.setFillColor(sf::Color::Green);
+                }
+                fpsText.setString("FPS: " + std::to_string(fps));
+                fpsSampleClock.restart();
+            }
+
             m_window->clear();
 
             m_window->draw(outputSprite);
+            m_window->draw(fpsText);
 
             m_window->display();
             // --- end of render pipeline --- //
