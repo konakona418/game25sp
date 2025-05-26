@@ -15,6 +15,7 @@
 #include "Root.hpp"
 #include "components/Lighting.hpp"
 #include "components/Collision.hpp"
+#include "PlayerBullet.hpp"
 
 namespace game::prefab {
     Mob Mob::create() {
@@ -22,6 +23,8 @@ namespace game::prefab {
     }
 
     Mob Mob::create(sf::Vector2f pos) {
+        static entt::connection collisionConn;
+        collisionConn = getEventDispatcher().sink<game::EOnCollisionEvent>().connect<&Mob::onCollision>();
         return Mob { pos };
     }
 
@@ -135,5 +138,14 @@ namespace game::prefab {
         }
 
         game::MovementUtils::flipHorizontal(entity, mobComponent.flipH);
+    }
+
+    void Mob::onCollision(game::EOnCollisionEvent e) {
+        auto pair = game::which<game::prefab::GPlayerBulletComponent, game::prefab::GMobComponent>(e.collider1, e.collider2);
+        if (pair) {
+            UnmountUtils::queueUnmount(e.collider1);
+            UnmountUtils::queueUnmount(e.collider2);
+            getEventDispatcher().trigger<EOnMobHitEvent>(EOnMobHitEvent { pair->second });
+        }
     }
 } // game

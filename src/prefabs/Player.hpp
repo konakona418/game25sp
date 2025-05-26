@@ -40,6 +40,9 @@ namespace game::prefab {
         bool attackKeyDown { false };
         sf::Clock attackCoolDown;
 
+        entt::entity hpText { entt::null };
+        entt::entity mpCoolDownText { entt::null };
+
         explicit GPlayerComponent(std::unordered_map<std::string, entt::resource<AnimatedFrames>> animations)
             : animations(std::move(animations)) {};
     };
@@ -50,18 +53,25 @@ namespace game::prefab {
 
     private:
         static constexpr size_t RENDER_LAYER = 16;
+        static constexpr size_t TEXT_RENDER_LAYER = 256;
         static constexpr float X_LIM = 1024.0;
         static constexpr float Y_LIM = 1024.0;
         static constexpr float DAMPING_FACTOR = 0.1f;
+        static constexpr float DAMPING_FACTOR_FAST = 0.9f;
         static constexpr sf::Time ATTACK_COOLDOWN = sf::seconds(2.f);
+        static constexpr size_t HP_FONT_SIZE = 12;
+        static constexpr size_t MP_FONT_SIZE = 10;
 
         static bool canMoveTo(sf::Vector2f target);
 
         Player();
         static std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> loadAnimationResources();
         static std::shared_ptr<sf::Image> loadCollisionTexture();
+        static entt::resource<sf::Font> loadFont();
         static void onUpdate(entt::entity entity, sf::Time deltaTime);
         static void onCollision(game::EOnCollisionEvent);
+        static void makeHpText(entt::entity text);
+        static void makeMpCoolDownText(entt::entity text);
     };
 }
 

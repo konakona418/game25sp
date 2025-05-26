@@ -70,7 +70,8 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
 
     auto& window = getGame().getWindow();
     auto lastCameraPosition = window.getViewCenter();
-    window.setViewCenter(lerp(lastCameraPosition, destination, 0.1f, deltaTime));
+    auto lerpedPosition = lerp(lastCameraPosition, destination, DAMPING_FACTOR, deltaTime);
+    window.setViewCenter(lerpedPosition);
 
     if (keyboard.isKeyPressed(sf::Keyboard::Key::X) && player.attackCoolDown.getElapsedTime() > ATTACK_COOLDOWN) {
         player.attackKeyDown = true;
@@ -80,6 +81,17 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
         game::prefab::PlayerBullet::create(position);
         player.attackKeyDown = false;
     }
+
+    auto& mpTextRenderComponent = registry.get<game::CTextRenderComponent>(player.mpCoolDownText);
+    float mpCoolDownRatio = std::clamp(player.attackCoolDown.getElapsedTime().asSeconds() / ATTACK_COOLDOWN.asSeconds(), 0.f, 1.f) * 100.f;
+    mpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::ceil(mpCoolDownRatio))) + "%");
+
+    auto lerpedPositionFast = lerp(lastCameraPosition, destination, DAMPING_FACTOR_FAST);
+    auto& hpTextLocalTransform = registry.get<game::CLocalTransform>(player.hpText);
+    MovementUtils::setPosition(player.hpText, lerpedPositionFast + sf::Vector2f{18.f, 0.f});
+
+    auto& mpCoolDownTextLocalTransform = registry.get<game::CLocalTransform>(player.mpCoolDownText);
+    MovementUtils::setPosition(player.mpCoolDownText, lerpedPositionFast + sf::Vector2f{18.f, 16.f});
 };
 
 void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
@@ -96,12 +108,18 @@ void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
         playerComponent.health -= 10;
         game::getLogger().logDebug("Player health: " + std::to_string(playerComponent.health));
 
+        auto& hpTextRenderComponent = registry.get<game::CTextRenderComponent>(playerComponent.hpText);
+        hpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::floor(playerComponent.health))));
+
         game::getEventDispatcher().trigger<EOnPlayerDamageEvent>({ pair->first, playerComponent.health });
 
         if (playerComponent.health <= 0) {
             UnmountUtils::queueUnmount(pair->first);
             game::getLogger().logInfo("Player died!");
             game::getEventDispatcher().trigger<EOnPlayerDeathEvent>({ pair->first });
+
+            UnmountUtils::queueUnmount(playerComponent.hpText);
+            UnmountUtils::queueUnmount(playerComponent.mpCoolDownText);
         }
     }
 }
@@ -146,6 +164,14 @@ game::prefab::Player::Player() : TreeLike() {
 
     auto& playerComponent = registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
     playerComponent.attackCoolDown.restart();
+
+    entt::entity hpText = registry.create();
+    makeHpText(hpText);
+    playerComponent.hpText = hpText;
+
+    entt::entity mpCoolDownText = registry.create();
+    makeMpCoolDownText(mpCoolDownText);
+    playerComponent.mpCoolDownText = mpCoolDownText;
 }
 
 std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::prefab::Player::loadAnimationResources() {
@@ -202,4 +228,62 @@ bool game::prefab::Player::canMoveTo(sf::Vector2f target) {
     }
 
     return false;
+}
+
+void game::prefab::Player::makeHpText(entt::entity text) {
+    auto& registry = game::getRegistry();
+
+    game::MovementUtils::builder()
+            .setLocalPosition({0.f, 0.f})
+            .setSize({100.f, 30.f})
+            .setScale({1.0, 1.0})
+            .setAnchor(game::CLayout::Anchor::TopLeft())
+            .build(text);
+    SceneTreeUtils::attachSceneTreeComponents(text);
+
+    registry.emplace<game::CRenderComponent>(text);
+    registry.emplace<game::CRenderLayerComponent>(text, TEXT_RENDER_LAYER, 0);
+    registry.emplace<game::CRenderTargetComponent>(text, game::CRenderTargetComponent::GameComponent);
+
+    auto font = loadFont();
+    auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
+    textRenderComponent.setTextSize(HP_FONT_SIZE);
+    textRenderComponent.setStyle(sf::Text::Style::Bold);
+    textRenderComponent.setColor(sf::Color(255, 96, 0));
+    textRenderComponent.setText("100");
+}
+
+void game::prefab::Player::makeMpCoolDownText(entt::entity text) {
+    auto& registry = game::getRegistry();
+    auto windowSize = getGame().getWindow().getWindowSize();
+
+    game::MovementUtils::builder()
+            .setLocalPosition({0.f, 0.f})
+            .setSize({100.f, 30.f})
+            .setScale({1.0, 1.0})
+            .setAnchor(game::CLayout::Anchor::TopLeft())
+            .build(text);
+    SceneTreeUtils::attachSceneTreeComponents(text);
+
+    registry.emplace<game::CRenderComponent>(text);
+    registry.emplace<game::CRenderLayerComponent>(text, TEXT_RENDER_LAYER, 1);
+    registry.emplace<game::CRenderTargetComponent>(text, game::CRenderTargetComponent::GameComponent);
+
+    auto font = loadFont();
+    auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
+    textRenderComponent.setTextSize(MP_FONT_SIZE);
+    textRenderComponent.setStyle(sf::Text::Style::Bold);
+    textRenderComponent.setColor(sf::Color(0, 196, 196));
+    textRenderComponent.setText("100%");
+}
+
+entt::resource<sf::Font> game::prefab::Player::loadFont() {
+    static Lazy font = Lazy<entt::resource<sf::Font>>(
+            [] {
+                return ResourceManager::getFontCache()
+                        .load(entt::hashed_string { "NotoSansSC" },
+                              "assets/NotoSansSC-Regular.ttf").first->second;
+            });
+
+    return *font;
 }

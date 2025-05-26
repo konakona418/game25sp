@@ -28,7 +28,6 @@ namespace game::prefab {
 
         static entt::resource<SpriteFrame> loadTexture();
         static void onUpdate(entt::entity entity, sf::Time deltaTime);
-        static void onCollision(game::EOnCollisionEvent e);
     };
 
 } // game

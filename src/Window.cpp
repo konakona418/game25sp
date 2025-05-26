@@ -63,6 +63,9 @@ namespace game {
         sf::Clock internalClock;
         internalClock.start();
 
+        sf::Clock crtScanlineClock;
+        crtScanlineClock.start();
+
         sf::RenderTexture gameComponents(m_windowSize);
         sf::RenderTexture ui(m_windowSize);
         sf::RenderTexture illumination(m_windowSize);
@@ -124,13 +127,14 @@ namespace game {
             auto zoomedView = m_logicalView;
             zoomedView.zoom(m_videoPreference.zoomFactor);
 
-            // phase: illumination with light source
+            // phase: game components
             gameComponents.setView(zoomedView);
             gameComponents.clear(sf::Color::Black);
             SRenderSystem::update(gameComponents, game::CRenderTargetComponent::GameComponent, deltaTime);
+            gameComponents.display();
+            sf::Sprite gameComponentsSprite(gameComponents.getTexture());
 
-            //sf::Vector2f positioningOffset = m_window->mapPixelToCoords(sf::Vector2i(0, 0), view);
-
+            // phase: illumination with light source
             illumination.setView(zoomedView);
             illumination.clear(sf::Color::Transparent);
             SLightingSystem::update(illumination);
@@ -139,20 +143,14 @@ namespace game {
             sf::Sprite illuminationSprite(illumination.getTexture());
             //illuminationSprite.setPosition(positioningOffset); // it just works.
 
+            // phase: ambient illumination
             ambientIllumination.setView(zoomedView);
             ambientIllumination.clear(ambientIlluminationColor);
             ambientIllumination.display();
 
             sf::Sprite ambientIlluminationSprite(ambientIllumination.getTexture());
-            //ambientIlluminationSprite.setPosition(positioningOffset);
 
-            //gameComponents.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
-            //gameComponents.draw(illuminationSprite, sf::RenderStates(sf::BlendAdd));
-
-            gameComponents.display();
-
-            sf::Sprite gameComponentsSprite(gameComponents.getTexture());
-
+            // phase: primary output - mix game components, ambient illumination and normal illumination
             primaryOutput.clear(sf::Color::Transparent);
             primaryOutput.draw(gameComponentsSprite);
             primaryOutput.draw(ambientIlluminationSprite, sf::RenderStates(sf::BlendMultiply));
@@ -162,14 +160,16 @@ namespace game {
             sf::Sprite primaryOutputSprite(primaryOutput.getTexture());
             primaryOutputSprite.setPosition({0.f, 0.f});
 
-
+            // phase: post-processing - add crt effects
             postProcessingCrt.clear(sf::Color::Transparent);
             crtShader->setUniform("u_texture", sf::Shader::CurrentTexture);
+            crtShader->setUniform("u_time", static_cast<float>(crtScanlineClock.getElapsedTime().asMilliseconds()));
             postProcessingCrt.draw(primaryOutputSprite, &*crtShader);
             postProcessingCrt.display();
             sf::Sprite postProcessingCrtSprite(postProcessingCrt.getTexture());
             postProcessingCrtSprite.setPosition({0.f, 0.f});
 
+            // phase: post-processing - add bloom - brightness calculation
             postProcessingBloomBrightness.clear(sf::Color::Transparent);
             bloomShader->setUniform("u_texture", sf::Shader::CurrentTexture);
             bloomShader->setUniform("u_brightness_threshold", 0.55f);
@@ -178,6 +178,7 @@ namespace game {
             sf::Sprite postProcessingBloomBrightnessSprite(postProcessingBloomBrightness.getTexture());
             postProcessingBloomBrightnessSprite.setPosition({0.f, 0.f});
 
+            // phase: post-processing - add bloom - gaussian blurring
             postProcessingBloomBlurH.clear(sf::Color::Transparent);
             bloomBlurShader->setUniform("u_texture", sf::Shader::CurrentTexture);
             bloomBlurShader->setUniform("u_resolution", sf::Vector2f(m_windowSize));
@@ -203,6 +204,7 @@ namespace game {
             sf::Sprite uiSprite(ui.getTexture());
             uiSprite.setPosition({0.f, 0.f});
 
+            // phase: final output - from crt post-processing, add bloom, ui
             finalOutput.clear(sf::Color::Transparent);
             finalOutput.draw(postProcessingCrtSprite);
             finalOutput.draw(postProcessingBloomBlurVSprite, sf::RenderStates(sf::BlendAdd));
@@ -224,6 +226,7 @@ namespace game {
 
             m_window->clear();
 
+            // phase: render final output
             m_window->draw(finalOutputSprite);
 
             m_window->draw(fpsText);

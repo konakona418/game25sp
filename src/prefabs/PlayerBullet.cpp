@@ -23,8 +23,6 @@ namespace game::prefab {
 
     PlayerBullet::PlayerBullet(const sf::Vector2f& pos) : game::TreeLike() {
         static size_t renderOrderAccumulator = 0;
-        static entt::connection collisionConn;
-        collisionConn = getEventDispatcher().sink<game::EOnCollisionEvent>().connect<&PlayerBullet::onCollision>();
 
         auto& registry = game::getRegistry();
         auto entity = registry.create();
@@ -100,14 +98,6 @@ namespace game::prefab {
             MovementUtils::move(entity, normal * SPEED * deltaTime.asSeconds());
         } else {
             UnmountUtils::queueUnmount(entity);
-        }
-    }
-
-    void PlayerBullet::onCollision(game::EOnCollisionEvent e) {
-        auto pair = game::which<game::prefab::GPlayerBulletComponent, game::prefab::GMobComponent>(e.collider1, e.collider2);
-        if (pair) {
-            UnmountUtils::queueUnmount(e.collider1);
-            UnmountUtils::queueUnmount(e.collider2);
         }
     }
 } // game

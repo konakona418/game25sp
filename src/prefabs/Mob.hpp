@@ -10,10 +10,17 @@
 #include "components/Render.hpp"
 #include "SFML/System/Clock.hpp"
 #include "systems/SceneControl.hpp"
+#include "systems/CollisionControl.hpp"
 
 namespace game::prefab {
 
     using MobSharedAnimation = std::shared_ptr<std::unordered_map<std::string, entt::resource<AnimatedFrames>>>;
+
+    struct EOnMobHitEvent {
+        entt::entity mob;
+
+        explicit EOnMobHitEvent(entt::entity mob) : mob(mob) {}
+    };
 
     struct GMobComponent {
         static constexpr sf::Time MOVE_INTERVAL = sf::seconds(1.5f);
@@ -48,6 +55,7 @@ namespace game::prefab {
         explicit Mob(sf::Vector2f pos);
         static MobSharedAnimation loadAnimationResources();
         static void mobUpdate(entt::entity entity, sf::Time deltaTime);
+        static void onCollision(game::EOnCollisionEvent e);
     };
 
 } // game

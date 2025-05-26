@@ -1,4 +1,5 @@
 uniform sampler2D u_texture;
+uniform float u_time;
 
 void main()
 {
@@ -14,7 +15,7 @@ void main()
 
     // color distortion
     vec2 offset = uv - center;
-    float chromatic_strength = 0.005;
+    float chromatic_strength = 0.015;
     vec4 color;
 
     color.r = texture2D(u_texture, uv + offset * chromatic_strength).r;
@@ -41,7 +42,9 @@ void main()
     float scanline_strength = 0.05;
     float scanline_freq = 5.0; // for every n lines,
     float scanline_width = 2.0; // make m of them dimmer
-    if (mod(gl_FragCoord.y, scanline_freq) < scanline_width)
+    float scanline_speed = 0.02;
+    float scanline_offset = u_time * scanline_speed;
+    if (mod(gl_FragCoord.y + scanline_offset, scanline_freq) < scanline_width)
     {
         gl_FragColor *= (1.0 - scanline_strength);
     }
