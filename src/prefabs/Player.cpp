@@ -88,10 +88,10 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
 
     auto lerpedPositionFast = lerp(lastCameraPosition, destination, DAMPING_FACTOR_FAST);
     auto& hpTextLocalTransform = registry.get<game::CLocalTransform>(player.hpText);
-    MovementUtils::setPosition(player.hpText, lerpedPositionFast + sf::Vector2f{18.f, 0.f});
+    MovementUtils::setPosition(player.hpText, lerpedPositionFast + sf::Vector2f{18.f, -24.f});
 
     auto& mpCoolDownTextLocalTransform = registry.get<game::CLocalTransform>(player.mpCoolDownText);
-    MovementUtils::setPosition(player.mpCoolDownText, lerpedPositionFast + sf::Vector2f{18.f, 16.f});
+    MovementUtils::setPosition(player.mpCoolDownText, lerpedPositionFast + sf::Vector2f{18.f, 0.f});
 };
 
 void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
@@ -185,7 +185,7 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
                         .setPlacement(sf::Vector2u{1, 6})
                         .setSize(sf::Vector2f{32, 48})
                         .setDuration(sf::seconds(0.1))
-                        .generate("playerIdle", "assets/idle.png")).first->second);
+                        .generate("playerIdle", "assets/image/idle.png")).first->second);
             res.emplace("walk", ResourceManager::getAnimatedFramesCache()
                 .load(entt::hashed_string {"playerWalkAnimation"},
                     game::AnimatedTextureGenerator()
@@ -193,7 +193,7 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
                         .setPlacement(sf::Vector2u{1, 8})
                         .setSize(sf::Vector2f{32, 48})
                         .setDuration(sf::seconds(0.1))
-                        .generate("playerWalk", "assets/walk.png")).first->second);
+                        .generate("playerWalk", "assets/image/walk.png")).first->second);
             return res;
         }
     };
@@ -205,7 +205,7 @@ std::shared_ptr<sf::Image> game::prefab::Player::loadCollisionTexture() {
     static game::Lazy<std::shared_ptr<sf::Image>> collisionTexture {
         [] {
             auto image = std::make_shared<sf::Image>();
-            if (!image->loadFromFile("assets/collision.png")) {
+            if (!image->loadFromFile("assets/image/collision.png")) {
                 game::getLogger().logError("Failed to load collision texture");
             }
             return image;
@@ -248,7 +248,6 @@ void game::prefab::Player::makeHpText(entt::entity text) {
     auto font = loadFont();
     auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
     textRenderComponent.setTextSize(HP_FONT_SIZE);
-    textRenderComponent.setStyle(sf::Text::Style::Bold);
     textRenderComponent.setColor(sf::Color(255, 96, 0));
     textRenderComponent.setText("100");
 }
@@ -272,7 +271,6 @@ void game::prefab::Player::makeMpCoolDownText(entt::entity text) {
     auto font = loadFont();
     auto& textRenderComponent = registry.emplace<game::CTextRenderComponent>(text, font);
     textRenderComponent.setTextSize(MP_FONT_SIZE);
-    textRenderComponent.setStyle(sf::Text::Style::Bold);
     textRenderComponent.setColor(sf::Color(0, 196, 196));
     textRenderComponent.setText("100%");
 }
@@ -281,8 +279,8 @@ entt::resource<sf::Font> game::prefab::Player::loadFont() {
     static Lazy font = Lazy<entt::resource<sf::Font>>(
             [] {
                 return ResourceManager::getFontCache()
-                        .load(entt::hashed_string { "NotoSansSC" },
-                              "assets/NotoSansSC-Regular.ttf").first->second;
+                        .load(entt::hashed_string { "Tiny5" },
+                              "assets/font/tiny5/Tiny5-Regular.ttf").first->second;
             });
 
     return *font;

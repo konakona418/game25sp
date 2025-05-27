@@ -58,10 +58,10 @@ int main() {
     game::getRegistry().ctx().emplace<game::prefab::DialogBox>(dialogBox);
 
     auto texture0 = game::ResourceManager::getTextureCache()
-            .load(entt::hashed_string { "portrait0" }, "assets/character0.png", sf::IntRect {{0, 0}, {1024, 1536}}).first->second;
+            .load(entt::hashed_string { "portrait0" }, "assets/image/character0.png", sf::IntRect {{0, 0}, {1024, 1536}}).first->second;
 
     auto texture1 = game::ResourceManager::getTextureCache()
-            .load(entt::hashed_string { "portrait1" }, "assets/character1.png", sf::IntRect {{0, 0}, {1024, 1536}}).first->second;
+            .load(entt::hashed_string { "portrait1" }, "assets/image/character1.png", sf::IntRect {{0, 0}, {1024, 1536}}).first->second;
     auto dialogs = game::DialogGenerator()
             .fromJson("assets/dialog/start.json")
             .generate();

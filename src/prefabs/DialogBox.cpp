@@ -217,7 +217,7 @@ namespace game::prefab {
             [] {
                 return ResourceManager::getFontCache()
                     .load(entt::hashed_string { "NotoSansSC" },
-                        "assets/NotoSansSC-Regular.ttf").first->second;
+                        "assets/font/NotoSansSC-Regular.ttf").first->second;
         });
 
         return *font;

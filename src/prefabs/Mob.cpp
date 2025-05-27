@@ -77,7 +77,7 @@ namespace game::prefab {
                                .setPlacement(sf::Vector2u{1, 3})
                                .setSize(sf::Vector2f{32, 48})
                                .setDuration(sf::seconds(0.16))
-                               .generate("mobIdle", "assets/slime.png")).first->second);
+                               .generate("mobIdle", "assets/image/slime.png")).first->second);
                 return res;
             }
         };

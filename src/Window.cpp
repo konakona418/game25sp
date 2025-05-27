@@ -53,7 +53,7 @@ namespace game {
         constexpr float FPS_SAMPLE_INTERVAL = 0.5f;
         auto font = ResourceManager::getFontCache()
                 .load(entt::hashed_string { "NotoSansSC" },
-                      "assets/NotoSansSC-Regular.ttf").first->second;
+                      "assets/font/NotoSansSC-Regular.ttf").first->second;
         sf::Text fpsText(font);
         fpsText.setPosition({ 24.f, 24.f });
         fpsText.setCharacterSize(20);

@@ -46,7 +46,7 @@ namespace game::prefab {
                         StaticTextureGenerator()
                                 .setOffset({0, 0})
                                 .setSize({32, 32})
-                                .generate("layerMap" + std::to_string(layer), "assets/map-layer" + std::to_string(layer) + ".png"))
+                                .generate("layerMap" + std::to_string(layer), "assets/image/map-layer" + std::to_string(layer) + ".png"))
                 .first->second;
     }
 } // game
