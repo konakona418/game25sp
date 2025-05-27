@@ -24,10 +24,6 @@ namespace game {
 
             shader.setUniform("lightColor", sf::Glsl::Vec4(lighting.getColor()));
             shader.setUniform("attenuationExponent", lighting.getAttenuationExponent());
-            /*shader.setUniform("lightRadius", radius);
-            shader.setUniform("attenuationConstant", 1.f);
-            shader.setUniform("attenuationLinear", 0.05f);
-            shader.setUniform("attenuationQuadratic", 0.01f);*/
 
             target.draw(shape, sf::RenderStates(&shader));
         }
@@ -47,16 +43,11 @@ namespace game {
         )";
 
         const static std::string c_fragShader = R"(
-            #version 330 core
+            #version 120
 
             uniform vec4 lightColor;
             uniform float attenuationExponent;
-            //uniform float lightRadius;
-            //uniform float attenuationConstant;
-            //uniform float attenuationLinear;
-            //uniform float attenuationQuadratic;
 
-            out vec4 out_Color;
             float absolute(float x) {
                 return x < 0.0 ? -x : x;
             }
@@ -76,7 +67,8 @@ namespace game {
 
                 vec4 finalColor = lightColor;
                 finalColor.a = lightColor.a * attenuation;
-                out_Color = finalColor;
+
+                gl_FragColor = finalColor;
             }
         )";
 
