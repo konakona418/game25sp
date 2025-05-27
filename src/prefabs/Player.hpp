@@ -59,7 +59,7 @@ namespace game::prefab {
         static constexpr float Y_LIM = 1024.0;
         static constexpr float DAMPING_FACTOR = 0.1f;
         static constexpr float DAMPING_FACTOR_FAST = 0.9f;
-        static constexpr sf::Time ATTACK_COOLDOWN = sf::seconds(2.f);
+        static constexpr sf::Time ATTACK_COOLDOWN = sf::seconds(1.f);
         static constexpr size_t HP_FONT_SIZE = 24;
         static constexpr size_t MP_FONT_SIZE = 18;
 

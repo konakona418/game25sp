@@ -19,6 +19,20 @@ void onPlayerDeath(game::prefab::EOnPlayerDeathEvent e) {
     dialogBox.setVisibility(true);
 }
 
+void cleanMobBullets() {
+    for (auto entity : game::getRegistry().view<game::prefab::GBulletComponent>()) {
+        game::UnmountUtils::queueUnmount(entity);
+    }
+}
+
+void makeMobs() {
+    auto& root = game::getRegistry().ctx().get<game::prefab::Root>();
+    for (int i = 0; i < static_cast<int>(game::random(12, 16)); i++) {
+        game::prefab::Mob mob = game::prefab::Mob::create(game::random({-512.f, -512.f}, { 512.f, 512.f }));
+        root.mountChild(mob.getEntity());
+    }
+}
+
 void onDialogCompleted(game::prefab::EOnDialogBoxCompletedEvent e) {
     static bool shouldClose = false;
 
@@ -34,10 +48,13 @@ void onDialogCompleted(game::prefab::EOnDialogBoxCompletedEvent e) {
     root.mountChild(player.getEntity());
     game::SceneTreeUtils::unmount(e.entity);
 
-    for (int i = 0; i < 16; i++) {
-        game::prefab::Mob mob = game::prefab::Mob::create(game::random({ 1000.f, 500.f }));
-        root.mountChild(mob.getEntity());
-    }
+    makeMobs();
+}
+
+void onBannerComplete(game::prefab::EOnBannerCompleteEvent e) {
+    auto& registry = game::getRegistry();
+    game::UnmountUtils::queueUnmount(e.banner);
+    makeMobs();
 }
 
 void onMobHit(game::prefab::EOnMobHitEvent e) {
@@ -54,6 +71,7 @@ void onMobHit(game::prefab::EOnMobHitEvent e) {
         game::prefab::Banner banner = game::prefab::Banner::create();
         banner.setText("STAGE CLEARED");
         banner.launch();
+        cleanMobBullets();
     }
 }
 
@@ -90,6 +108,7 @@ int main() {
     game::getEventDispatcher().sink<game::prefab::EOnDialogBoxCompletedEvent>().connect<&onDialogCompleted>();
     game::getEventDispatcher().sink<game::prefab::EOnPlayerDeathEvent>().connect<&onPlayerDeath>();
     game::getEventDispatcher().sink<game::prefab::EOnMobHitEvent>().connect<&onMobHit>();
+    game::getEventDispatcher().sink<game::prefab::EOnBannerCompleteEvent>().connect<&onBannerComplete>();
 
     game.run();
 }

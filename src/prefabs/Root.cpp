@@ -45,5 +45,5 @@ bool game::prefab::Root::isUnmounted() const {
 }
 
 game::prefab::Root::~Root() {
-    unmount();
+    //unmount();
 }

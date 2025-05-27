@@ -11,6 +11,10 @@
 
 namespace game::prefab {
 
+    struct EOnBannerCompleteEvent {
+        entt::entity banner;
+    };
+
     struct GBannerComponent {
         enum class BannerState {
             BANNER_IDLE = 0,

@@ -160,6 +160,7 @@ namespace game::prefab {
         }
         if (bannerComponent.bannerState == GBannerComponent::BannerState::BANNER_FADE_OUT) {
             bannerComponent.bannerState = GBannerComponent::BannerState::BANNER_IDLE;
+            game::getEventDispatcher().trigger<EOnBannerCompleteEvent>(EOnBannerCompleteEvent { entity });
             game::RenderUtils::markAsInvisible(entity);
         }
     }
