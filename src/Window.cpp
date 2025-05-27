@@ -82,6 +82,7 @@ namespace game {
         sf::RenderTexture postProcessingBloomBlurV(m_windowSize);
         sf::RenderTexture postProcessingBloomBlurH(m_windowSize);
 
+        sf::RenderTexture smallMapOutput(m_windowSize);
         sf::RenderTexture finalOutput(m_windowSize);
 
         entt::resource<sf::Shader> pixelShader = ResourceManager::getShaderCache()
@@ -133,6 +134,25 @@ namespace game {
 
             auto zoomedView = m_logicalView;
             zoomedView.zoom(m_videoPreference.zoomFactor);
+
+            auto smallMapView = sf::View(m_logicalView.getCenter(), sf::Vector2f { 400.f, 400.f });
+            smallMapView.zoom(3.0f);
+
+            sf::RectangleShape smallMapShape({ 180.f, 180.f });
+            sf::Texture texture;
+            if (m_misc.showSmallMap) {
+                smallMapOutput.setView(smallMapView);
+                smallMapOutput.clear(sf::Color{96, 96, 128, 196});
+                SRenderSystem::update(smallMapOutput, game::CRenderTargetComponent::GameComponent, deltaTime);
+                smallMapOutput.display();
+
+                texture = smallMapOutput.getTexture();
+                smallMapShape.setTexture(&texture);
+                smallMapShape.setOutlineColor(sf::Color{32, 32, 96});
+                smallMapShape.setOutlineThickness(2.f);
+                smallMapShape.setPosition(sf::Vector2f{static_cast<float>(m_windowSize.x) * 0.05f,
+                                                       static_cast<float>(m_windowSize.y) * 0.05f});
+            }
 
             // phase: game components
             gameComponents.setView(zoomedView);
@@ -206,6 +226,9 @@ namespace game {
             uiPostProcessingCrt.clear(sf::Color::Transparent);
             crtShader->setUniform("u_chromatic_strength", 0.005f);
             uiPostProcessingCrt.draw(uiPixelatedSprite, &*crtShader);
+            if (m_misc.showSmallMap) {
+                uiPostProcessingCrt.draw(smallMapShape, &*crtShader);
+            }
             uiPostProcessingCrt.display();
             sf::Sprite uiPostProcessingCrtSprite(uiPostProcessingCrt.getTexture());
             uiPostProcessingCrtSprite.setPosition({0.f, 0.f});

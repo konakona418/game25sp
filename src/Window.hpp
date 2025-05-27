@@ -52,6 +52,9 @@ namespace game {
 
         sf::RenderWindow* getRawWindow() { return m_window.get(); }
 
+        void setSmallMapVisibility(bool isVisible) { m_misc.showSmallMap = isVisible; }
+        bool isSmallMapVisible() const { return m_misc.showSmallMap; }
+
     private:
         struct VideoPreference {
             int fps = 60;
@@ -59,11 +62,16 @@ namespace game {
             float zoomFactor = 1.f;
         };
 
+        struct Misc {
+            bool showSmallMap { false };
+        };
+
         std::unique_ptr<sf::RenderWindow> m_window { nullptr };
         sf::Vector2u m_windowSize;
         sf::String m_windowTitle = u8"Game";
         float m_aspectRatio { 0 };
         VideoPreference m_videoPreference;
+        Misc m_misc;
         sf::View m_logicalView;
 
         void keepViewportScale() const;

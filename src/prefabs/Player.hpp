@@ -44,6 +44,8 @@ namespace game::prefab {
         entt::entity mpCoolDownText { entt::null };
         bool allowCheating { false };
 
+        bool smallMapKeyDown { false };
+
         explicit GPlayerComponent(std::unordered_map<std::string, entt::resource<AnimatedFrames>> animations)
             : animations(std::move(animations)) {};
     };

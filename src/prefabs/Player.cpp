@@ -24,6 +24,8 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
     auto& game = game::getGame();
     auto& keyboard = game.getKeyboard();
 
+    auto& player = registry.get<game::prefab::GPlayerComponent>(entity);
+
     sf::Vector2f velocity = sf::Vector2f{0, 0};
     if (keyboard.isKeyPressed(sf::Keyboard::Key::Up)) {
         velocity.y = -1;
@@ -43,7 +45,15 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
         game.setTimeScale(1.0f);
     }
 
-    auto& player = registry.get<game::prefab::GPlayerComponent>(entity);
+    if (keyboard.isKeyPressed(sf::Keyboard::Key::M)) {
+        player.smallMapKeyDown = true;
+    }
+    if (keyboard.isKeyReleased(sf::Keyboard::Key::M) && player.smallMapKeyDown) {
+        auto& window = game.getWindow();
+        window.setSmallMapVisibility(!window.isSmallMapVisible());
+        player.smallMapKeyDown = false;
+    }
+
     if (keyboard.isKeyPressed(sf::Keyboard::Key::F1)) {
         player.allowCheating = true;
         player.health = 100.f;
@@ -196,7 +206,7 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
                         .setOffset(sf::Vector2f{0, 0})
                         .setPlacement(sf::Vector2u{1, 6})
                         .setSize(sf::Vector2f{32, 48})
-                        .setDuration(sf::seconds(0.1))
+                        .setDuration(sf::seconds(0.16))
                         .generate("playerIdle", "assets/image/idle.png")).first->second);
             res.emplace("walk", ResourceManager::getAnimatedFramesCache()
                 .load(entt::hashed_string {"playerWalkAnimation"},
@@ -204,7 +214,7 @@ std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::pref
                         .setOffset(sf::Vector2f{0, 0})
                         .setPlacement(sf::Vector2u{1, 8})
                         .setSize(sf::Vector2f{32, 48})
-                        .setDuration(sf::seconds(0.1))
+                        .setDuration(sf::seconds(0.16))
                         .generate("playerWalk", "assets/image/walk.png")).first->second);
             return res;
         }
