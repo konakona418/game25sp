@@ -44,6 +44,11 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
     }
 
     auto& player = registry.get<game::prefab::GPlayerComponent>(entity);
+    if (keyboard.isKeyPressed(sf::Keyboard::Key::F1)) {
+        player.allowCheating = true;
+        player.health = 100.f;
+    }
+
     if (velocity.x < 0) {
         player.flipH = true;
     }
@@ -73,18 +78,22 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
     auto lerpedPosition = lerp(lastCameraPosition, destination, DAMPING_FACTOR, deltaTime);
     window.setViewCenter(lerpedPosition);
 
-    if (keyboard.isKeyPressed(sf::Keyboard::Key::X) && player.attackCoolDown.getElapsedTime() > ATTACK_COOLDOWN) {
+    if (keyboard.isKeyPressed(sf::Keyboard::Key::X) && (player.attackCoolDown.getElapsedTime() > ATTACK_COOLDOWN || player.allowCheating)) {
         player.attackKeyDown = true;
-        player.attackCoolDown.restart();
     }
     if (keyboard.isKeyReleased(sf::Keyboard::Key::X) && player.attackKeyDown) {
         game::prefab::PlayerBullet::create(position);
         player.attackKeyDown = false;
+        player.attackCoolDown.restart();
     }
 
     auto& mpTextRenderComponent = registry.get<game::CTextRenderComponent>(player.mpCoolDownText);
     float mpCoolDownRatio = std::clamp(player.attackCoolDown.getElapsedTime().asSeconds() / ATTACK_COOLDOWN.asSeconds(), 0.f, 1.f) * 100.f;
     mpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::ceil(mpCoolDownRatio))) + "%");
+
+    auto& hpTextRenderComponent = registry.get<game::CTextRenderComponent>(player.hpText);
+    hpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::floor(player.health)))
+        + (player.allowCheating ? " *" : ""));
 
     auto lerpedPositionFast = lerp(lastCameraPosition, destination, DAMPING_FACTOR_FAST);
     auto& hpTextLocalTransform = registry.get<game::CLocalTransform>(player.hpText);
@@ -105,11 +114,14 @@ void game::prefab::Player::onCollision(game::EOnCollisionEvent e) {
     if (pair) {
         auto& playerComponent = registry.get<game::prefab::GPlayerComponent>(pair->first);
         UnmountUtils::queueUnmount(pair->second);
-        playerComponent.health -= 10;
-        game::getLogger().logDebug("Player health: " + std::to_string(playerComponent.health));
 
-        auto& hpTextRenderComponent = registry.get<game::CTextRenderComponent>(playerComponent.hpText);
-        hpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::floor(playerComponent.health))));
+        if (!playerComponent.allowCheating) {
+            playerComponent.health -= 10;
+        } else {
+            getLogger().logDebug("Using cheating mode, player health unchanged");
+        }
+
+        game::getLogger().logDebug("Player health: " + std::to_string(playerComponent.health));
 
         game::getEventDispatcher().trigger<EOnPlayerDamageEvent>({ pair->first, playerComponent.health });
 

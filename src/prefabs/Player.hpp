@@ -42,6 +42,7 @@ namespace game::prefab {
 
         entt::entity hpText { entt::null };
         entt::entity mpCoolDownText { entt::null };
+        bool allowCheating { false };
 
         explicit GPlayerComponent(std::unordered_map<std::string, entt::resource<AnimatedFrames>> animations)
             : animations(std::move(animations)) {};

@@ -44,7 +44,7 @@ namespace game {
 
     float CTweenComponent::EasingFunction::circular(float progress) {
         if (progress < 0.5f) {
-            return (1.0f - std::sqrtf(1.0f - std::pow(2.0f * progress, 2))) / 2.0f;
+            return (1.0f - std::sqrtf(1.0f - std::powf(2.0f * progress, 2))) / 2.0f;
         }
         return (std::sqrtf(1.0f - std::powf(-2.0f * progress + 2.0f, 2)) + 1.0f) / 2.0f;
     }
@@ -61,10 +61,10 @@ namespace game {
 
         const auto realElapsed = m_elapsed - m_delay;
 
-        if (realElapsed > m_duration) {
-            m_completionCallback(entity);
-            m_elapsed = sf::Time::Zero;
+        if (realElapsed >= m_duration) {
+            //m_elapsed = sf::Time::Zero;
             m_running = false;
+            m_completionCallback(entity);
             return;
         }
 
@@ -75,5 +75,9 @@ namespace game {
     void CTweenComponent::restart() {
         m_elapsed = sf::Time::Zero;
         m_running = true;
+    }
+
+    float CTweenComponent::getRatioValue() const {
+        return m_easingFunction(m_elapsed.asSeconds() / m_duration.asSeconds());
     }
 } // game

@@ -1,6 +1,8 @@
 uniform sampler2D u_texture;
 uniform float u_time;
 
+uniform float u_chromatic_strength;
+
 void main()
 {
     vec2 uv = gl_TexCoord[0];
@@ -15,7 +17,7 @@ void main()
 
     // color distortion
     vec2 offset = uv - center;
-    float chromatic_strength = 0.015;
+    float chromatic_strength = u_chromatic_strength;
     vec4 color;
 
     color.r = texture2D(u_texture, uv + offset * chromatic_strength).r;

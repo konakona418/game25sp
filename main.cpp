@@ -1,12 +1,14 @@
 #include "Prelude.hpp"
 #include "prefabs/Bullet.hpp"
 #include "prefabs/DialogBox.hpp"
+#include "prefabs/Banner.hpp"
 #include "prefabs/Mob.hpp"
 #include "prefabs/Player.hpp"
 #include "prefabs/Root.hpp"
 #include "systems/MusicControl.hpp"
 #include "utils/DialogGenerator.hpp"
 #include "prefabs/SimpleMapLayer.hpp"
+#include "components/SceneTree.hpp"
 
 void onPlayerDeath(game::prefab::EOnPlayerDeathEvent e) {
     game::prefab::DialogBox dialogBox = game::prefab::DialogBox::create();
@@ -35,6 +37,23 @@ void onDialogCompleted(game::prefab::EOnDialogBoxCompletedEvent e) {
     for (int i = 0; i < 16; i++) {
         game::prefab::Mob mob = game::prefab::Mob::create(game::random({ 1000.f, 500.f }));
         root.mountChild(mob.getEntity());
+    }
+}
+
+void onMobHit(game::prefab::EOnMobHitEvent e) {
+    auto& registry = game::getRegistry();
+    size_t size = 0;
+    registry.view<game::prefab::GMobComponent>().each([&size](entt::entity e, game::prefab::GMobComponent&) {
+        if (!game::UnmountUtils::isUnmountingQueued(e)) {
+            size++;
+        }
+    });
+
+    game::getLogger().logDebug("Mob hit, remaining: " + std::to_string(size));
+    if (size == 0) {
+        game::prefab::Banner banner = game::prefab::Banner::create();
+        banner.setText("STAGE CLEARED");
+        banner.launch();
     }
 }
 
@@ -70,6 +89,7 @@ int main() {
 
     game::getEventDispatcher().sink<game::prefab::EOnDialogBoxCompletedEvent>().connect<&onDialogCompleted>();
     game::getEventDispatcher().sink<game::prefab::EOnPlayerDeathEvent>().connect<&onPlayerDeath>();
+    game::getEventDispatcher().sink<game::prefab::EOnMobHitEvent>().connect<&onMobHit>();
 
     game.run();
 }

@@ -49,6 +49,8 @@ namespace game {
         void setCallback(std::function<void(entt::entity entity, float value)> callback) { m_callback = std::move(callback); }
         void setCompletionCallback(std::function<void(entt::entity entity)> callback) { m_completionCallback = std::move(callback); }
 
+        [[nodiscard]] float getRatioValue() const;
+
         template <typename Fn, std::enable_if_t<std::is_invocable_v<Fn>, int> = 0>
         void setEasingFunction(Fn&& easingFunction) {
             m_easingFunction = std::function<float(float)>(std::forward<Fn>(easingFunction));

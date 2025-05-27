@@ -339,3 +339,7 @@ void game::UnmountUtils::queueUnmount(entt::entity entity) {
     }
     registry.emplace<CUnmount>(entity);
 }
+
+bool game::UnmountUtils::isUnmountingQueued(entt::entity entity) {
+    return game::getRegistry().any_of<CUnmount>(entity);
+}

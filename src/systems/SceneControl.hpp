@@ -77,6 +77,7 @@ namespace game {
     class UnmountUtils {
     public:
         static void queueUnmount(entt::entity entity);
+        static bool isUnmountingQueued(entt::entity entity);
     };
 
     class TreeLike {
