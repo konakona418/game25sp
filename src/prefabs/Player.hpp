@@ -65,6 +65,10 @@ namespace game::prefab {
         static constexpr size_t HP_FONT_SIZE = 24;
         static constexpr size_t MP_FONT_SIZE = 18;
 
+        static constexpr float SMALL_MAP_INDICATOR_SIZE = 32.f;
+        static constexpr float SMALL_MAP_INDICATOR_OUTLINE = 8.f;
+        static constexpr size_t SMALL_MAP_INDICATOR_LAYER = 255;
+
         static bool canMoveTo(sf::Vector2f target);
 
         Player();
@@ -75,6 +79,7 @@ namespace game::prefab {
         static void onCollision(game::EOnCollisionEvent);
         static void makeHpText(entt::entity text);
         static void makeMpCoolDownText(entt::entity text);
+        static void makeSmallMapIndicator(entt::entity indicator);
     };
 }
 

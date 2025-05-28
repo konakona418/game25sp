@@ -17,6 +17,8 @@ namespace game {
     class SRenderSystem {
     public:
         static void update(sf::RenderTarget& target, size_t targetId, sf::Time deltaTime);
+    private:
+        static bool checkRenderTargetMask(size_t targetId, size_t mask);
     };
 
     class RenderUtils {

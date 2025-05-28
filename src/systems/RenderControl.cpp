@@ -27,7 +27,7 @@ void game::SRenderSystem::update(sf::RenderTarget& target, size_t targetId, sf::
 
     for (auto entity : commonView) {
         size_t renderTargetId = commonView.get<CRenderTargetComponent>(entity).getTargetId();
-        if (renderTargetId != targetId) {
+        if (!checkRenderTargetMask(renderTargetId, targetId)) {
             continue;
         }
 
@@ -99,4 +99,8 @@ void game::RenderUtils::markAsVisibleNotRecurse(entt::entity entity) {
     if (!registry.any_of<CRenderComponent>(entity)) {
         registry.emplace<CRenderComponent>(entity);
     }
+}
+
+bool game::SRenderSystem::checkRenderTargetMask(size_t targetId, size_t mask) {
+    return !!(targetId & mask);
 }

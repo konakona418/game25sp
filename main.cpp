@@ -9,6 +9,7 @@
 #include "utils/DialogGenerator.hpp"
 #include "prefabs/SimpleMapLayer.hpp"
 #include "components/SceneTree.hpp"
+#include "prefabs/SplashScreen.hpp"
 
 void onPlayerDeath(game::prefab::EOnPlayerDeathEvent e) {
     game::prefab::DialogBox dialogBox = game::prefab::DialogBox::create();
@@ -75,14 +76,8 @@ void onMobHit(game::prefab::EOnMobHitEvent e) {
     }
 }
 
-int main() {
-    game::Game& game = game::Game::createGame();
-    game.setConfig({.windowTitle = "Game - C++ 25sp", .fps = 60, .vsync = false});
-
-    game::prefab::Root root = game::prefab::Root::create();
-    game::getRegistry().ctx().emplace<game::prefab::Root>(root);
-
-    game.getWindow().setZoomFactor(0.5f);
+void onSplashScreenCompleted(game::prefab::EOnSplashScreenCompletedEvent e) {
+    game::UnmountUtils::queueUnmount(e.entity);
 
     game::prefab::SimpleMapLayer::create(0);
     game::prefab::SimpleMapLayer::create(96);
@@ -104,11 +99,26 @@ int main() {
             .generate();
     dialogBox.loadDialog("dialogStart", dialogs);
     dialogBox.setVisibility(true);
+}
 
-    game::getEventDispatcher().sink<game::prefab::EOnDialogBoxCompletedEvent>().connect<&onDialogCompleted>();
-    game::getEventDispatcher().sink<game::prefab::EOnPlayerDeathEvent>().connect<&onPlayerDeath>();
-    game::getEventDispatcher().sink<game::prefab::EOnMobHitEvent>().connect<&onMobHit>();
-    game::getEventDispatcher().sink<game::prefab::EOnBannerCompleteEvent>().connect<&onBannerComplete>();
+int main() {
+    game::Game& game = game::Game::createGame();
+    game.setConfig({.windowTitle = "Game - C++ 25sp", .fps = 60, .vsync = false});
+
+    game::prefab::Root root = game::prefab::Root::create();
+    game::getRegistry().ctx().emplace<game::prefab::Root>(root);
+
+    game.getWindow().setZoomFactor(0.5f);
+
+    game::prefab::SplashScreen splashScreen = game::prefab::SplashScreen::create();
+
+    auto& eventDispatcher = game::getEventDispatcher();
+
+    eventDispatcher.sink<game::prefab::EOnSplashScreenCompletedEvent>().connect<&onSplashScreenCompleted>();
+    eventDispatcher.sink<game::prefab::EOnDialogBoxCompletedEvent>().connect<&onDialogCompleted>();
+    eventDispatcher.sink<game::prefab::EOnPlayerDeathEvent>().connect<&onPlayerDeath>();
+    eventDispatcher.sink<game::prefab::EOnMobHitEvent>().connect<&onMobHit>();
+    eventDispatcher.sink<game::prefab::EOnBannerCompleteEvent>().connect<&onBannerComplete>();
 
     game.run();
 }

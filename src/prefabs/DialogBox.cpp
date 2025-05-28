@@ -262,7 +262,7 @@ namespace game::prefab {
         registry.emplace<game::CRenderLayerComponent>(container, RENDER_LAYER, 1);
 
         auto rectShape = new sf::RectangleShape();
-        rectShape->setFillColor(sf::Color(255, 255, 255, 230));
+        rectShape->setFillColor(sf::Color(255, 255, 255, 240));
 
         auto uniqueShape = std::unique_ptr<sf::Shape>(rectShape);
         registry.emplace<game::CShapeRenderComponent>(container, std::move(uniqueShape));

@@ -64,6 +64,10 @@ namespace game::prefab {
         registry.emplace<game::CLightingComponent>(entity, sf::Color(64, 96, 255, 255), 50.f);
 
         registry.emplace<game::prefab::GMobComponent>(entity, animations);
+
+        auto smallMapIndicator = registry.create();
+        makeSmallMapIndicator(smallMapIndicator);
+        SceneTreeUtils::attachChild(entity, smallMapIndicator);
     }
 
     MobSharedAnimation Mob::loadAnimationResources() {
@@ -76,7 +80,7 @@ namespace game::prefab {
                                .setOffset(sf::Vector2f{0, 0})
                                .setPlacement(sf::Vector2u{1, 3})
                                .setSize(sf::Vector2f{32, 48})
-                               .setDuration(sf::seconds(0.16))
+                               .setDuration(sf::seconds(0.3))
                                .generate("mobIdle", "assets/image/slime.png")).first->second);
                 return res;
             }
@@ -147,5 +151,29 @@ namespace game::prefab {
             UnmountUtils::queueUnmount(e.collider2);
             getEventDispatcher().trigger<EOnMobHitEvent>(EOnMobHitEvent { pair->second });
         }
+    }
+
+    void Mob::makeSmallMapIndicator(entt::entity indicator) {
+        auto& registry = game::getRegistry();
+
+        game::MovementUtils::builder()
+                .setLocalPosition({0.f, 0.f})
+                .setSize({SMALL_MAP_INDICATOR_SIZE, 0.f})
+                .setScale({1.0, 1.0})
+                .setAnchor(game::CLayout::Anchor::MiddleCenter())
+                .build(indicator);
+        SceneTreeUtils::attachSceneTreeComponents(indicator);
+
+        registry.emplace<game::CRenderComponent>(indicator);
+        registry.emplace<game::CRenderLayerComponent>(indicator, SMALL_MAP_INDICATOR_LAYER, 0);
+        registry.emplace<game::CRenderTargetComponent>(indicator, game::CRenderTargetComponent::SmallMap);
+
+        auto* circleShape = new sf::CircleShape(SMALL_MAP_INDICATOR_SIZE);
+        circleShape->setFillColor(sf::Color(255, 96, 96, 196));
+        circleShape->setOutlineColor(sf::Color(255, 255, 255, 196));
+        circleShape->setOutlineThickness(SMALL_MAP_INDICATOR_OUTLINE);
+
+        auto uniqueShape = std::unique_ptr<sf::CircleShape>(circleShape);
+        registry.emplace<game::CShapeRenderComponent>(indicator, std::move(uniqueShape));
     }
 } // game

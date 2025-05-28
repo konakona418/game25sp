@@ -118,6 +118,7 @@ namespace game {
             auto deltaTime = internalClock.restart();
             const auto timeScale = game.getTimeScale();
 
+            auto originalDeltaTime = deltaTime;
             deltaTime *= timeScale;
 
             // DO NOT write the logic in event polling loop!!
@@ -143,7 +144,7 @@ namespace game {
             if (m_misc.showSmallMap) {
                 smallMapOutput.setView(smallMapView);
                 smallMapOutput.clear(sf::Color{96, 96, 128, 196});
-                SRenderSystem::update(smallMapOutput, game::CRenderTargetComponent::GameComponent, deltaTime);
+                SRenderSystem::update(smallMapOutput, game::CRenderTargetComponent::SmallMap, deltaTime);
                 smallMapOutput.display();
 
                 texture = smallMapOutput.getTexture();
@@ -271,13 +272,13 @@ namespace game {
             finalOutputSprite.setPosition({0.f, 0.f});
 
             if (fpsSampleClock.getElapsedTime() > sf::seconds(FPS_SAMPLE_INTERVAL)) {
-                auto fps = 1.f / deltaTime.asSeconds();
+                auto fps = 1.f / originalDeltaTime.asSeconds();
                 if (fps < FPS_LIMIT) {
                     fpsText.setFillColor(sf::Color::Red);
                 } else {
                     fpsText.setFillColor(sf::Color::Green);
                 }
-                fpsText.setString("FPS: " + std::to_string(fps));
+                fpsText.setString(std::to_string(static_cast<int32_t>(std::roundf(fps))));
                 fpsSampleClock.restart();
             }
 

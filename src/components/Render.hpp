@@ -41,8 +41,9 @@ namespace game {
         CRenderTargetComponent() = default;
         explicit CRenderTargetComponent(size_t targetId) : m_targetId(targetId) {}
 
-        static constexpr size_t GameComponent = 0;
-        static constexpr size_t UI = 1;
+        static constexpr size_t GameComponent = (1 << 0);
+        static constexpr size_t UI = (1 << 1);
+        static constexpr size_t SmallMap = (1 << 2);
 
         void setTargetId(size_t targetId) { m_targetId = targetId; }
         [[nodiscard]] size_t getTargetId() const { return m_targetId; }

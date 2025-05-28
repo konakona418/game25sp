@@ -62,6 +62,10 @@ namespace game::prefab {
         registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 192, 203, 196), 12.f);
 
         registry.emplace<game::prefab::GBulletComponent>(entity);
+
+        auto smallMapIndicator = registry.create();
+        makeSmallMapIndicator(smallMapIndicator);
+        SceneTreeUtils::attachChild(entity, smallMapIndicator);
     }
 
     entt::resource<SpriteFrame> Bullet::loadTexture() {
@@ -79,5 +83,28 @@ namespace game::prefab {
             }
         };
         return *texture;
+    }
+
+    void Bullet::makeSmallMapIndicator(entt::entity indicator) {
+
+        auto& registry = game::getRegistry();
+
+        game::MovementUtils::builder()
+                .setLocalPosition({0.f, 0.f})
+                .setSize({SMALL_MAP_INDICATOR_SIZE, 0.f})
+                .setScale({1.0, 1.0})
+                .setAnchor(game::CLayout::Anchor::MiddleCenter())
+                .build(indicator);
+        SceneTreeUtils::attachSceneTreeComponents(indicator);
+
+        registry.emplace<game::CRenderComponent>(indicator);
+        registry.emplace<game::CRenderLayerComponent>(indicator, SMALL_MAP_INDICATOR_LAYER, 0);
+        registry.emplace<game::CRenderTargetComponent>(indicator, game::CRenderTargetComponent::SmallMap);
+
+        auto* circleShape = new sf::CircleShape(SMALL_MAP_INDICATOR_SIZE);
+        circleShape->setFillColor(sf::Color(255, 255, 255, 196));
+
+        auto uniqueShape = std::unique_ptr<sf::CircleShape>(circleShape);
+        registry.emplace<game::CShapeRenderComponent>(indicator, std::move(uniqueShape));
     }
 } // game

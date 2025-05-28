@@ -6,6 +6,7 @@
 #include "Common.hpp"
 #include "components/Lighting.hpp"
 #include "components/Layout.hpp"
+#include "components/SceneTree.hpp"
 
 namespace game {
     void SLightingSystem::update(sf::RenderTarget& target) {
@@ -13,6 +14,13 @@ namespace game {
         auto& shader = getShader();
 
         for (auto [entity, lighting] : registry.view<CLightingComponent>().each()) {
+            // this means that the entity's position hasn't been properly calculated.
+            // by doing so, we can avoid to many entities' illumination set at the origin,
+            // which is the default position of un-calculated entities.
+            if (registry.any_of<game::CSceneElementNeedsUpdate>(entity)) {
+                continue;
+            }
+
             auto& globalTransform = registry.get<CGlobalTransform>(entity);
             auto radius = lighting.getRadius();
 

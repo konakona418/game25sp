@@ -194,6 +194,10 @@ game::prefab::Player::Player() : TreeLike() {
     entt::entity mpCoolDownText = registry.create();
     makeMpCoolDownText(mpCoolDownText);
     playerComponent.mpCoolDownText = mpCoolDownText;
+
+    auto smallMapIndicator = registry.create();
+    makeSmallMapIndicator(smallMapIndicator);
+    SceneTreeUtils::attachChild(entity, smallMapIndicator);
 }
 
 std::unordered_map<std::string, entt::resource<game::AnimatedFrames>> game::prefab::Player::loadAnimationResources() {
@@ -306,4 +310,28 @@ entt::resource<sf::Font> game::prefab::Player::loadFont() {
             });
 
     return *font;
+}
+
+void game::prefab::Player::makeSmallMapIndicator(entt::entity indicator) {
+    auto& registry = game::getRegistry();
+
+    game::MovementUtils::builder()
+            .setLocalPosition({0.f, 0.f})
+            .setSize({SMALL_MAP_INDICATOR_SIZE, 0.f})
+            .setScale({1.0, 1.0})
+            .setAnchor(game::CLayout::Anchor::MiddleCenter())
+            .build(indicator);
+    SceneTreeUtils::attachSceneTreeComponents(indicator);
+
+    registry.emplace<game::CRenderComponent>(indicator);
+    registry.emplace<game::CRenderLayerComponent>(indicator, SMALL_MAP_INDICATOR_LAYER, 0);
+    registry.emplace<game::CRenderTargetComponent>(indicator, game::CRenderTargetComponent::SmallMap);
+
+    auto* circleShape = new sf::CircleShape(SMALL_MAP_INDICATOR_SIZE);
+    circleShape->setFillColor(sf::Color(0, 255, 96, 196));
+    circleShape->setOutlineColor(sf::Color(255, 255, 255, 196));
+    circleShape->setOutlineThickness(SMALL_MAP_INDICATOR_OUTLINE);
+
+    auto uniqueShape = std::unique_ptr<sf::CircleShape>(circleShape);
+    registry.emplace<game::CShapeRenderComponent>(indicator, std::move(uniqueShape));
 }

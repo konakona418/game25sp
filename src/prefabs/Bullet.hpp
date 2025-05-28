@@ -28,11 +28,15 @@ namespace game::prefab {
         static constexpr float DEFAULT_SPEED = 256.f;
         static constexpr size_t RENDER_LAYER = 24;
 
+        static constexpr float SMALL_MAP_INDICATOR_SIZE = 32.f;
+        static constexpr size_t SMALL_MAP_INDICATOR_LAYER = 254;
+
         void onUpdate(entt::entity entity, sf::Time deltaTime);
         Bullet(sf::Vector2f pos, sf::Vector2f dir);
         Bullet(sf::Vector2f pos, sf::Vector2f dir, float speed);
 
         static entt::resource<SpriteFrame> loadTexture();
+        static void makeSmallMapIndicator(entt::entity indicator);
     };
 
 } // game

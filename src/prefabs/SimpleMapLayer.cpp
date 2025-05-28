@@ -34,7 +34,9 @@ namespace game::prefab {
 
         registry.emplace<game::CRenderComponent>(entity);
         registry.emplace<game::CRenderLayerComponent>(entity, renderOrder, 0);
-        registry.emplace<game::CRenderTargetComponent>(entity, game::CRenderTargetComponent::GameComponent);
+        registry.emplace<game::CRenderTargetComponent>(
+                entity,
+                game::CRenderTargetComponent::GameComponent | game::CRenderTargetComponent::SmallMap);
 
         auto frame = loadTextureLayer(renderOrder);
         registry.emplace<game::CSpriteRenderComponent>(entity, frame);

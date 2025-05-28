@@ -51,11 +51,15 @@ namespace game::prefab {
         ~Mob() = default;
     private:
         static constexpr size_t RENDER_LAYER = 12;
+        static constexpr float SMALL_MAP_INDICATOR_SIZE = 24.f;
+        static constexpr float SMALL_MAP_INDICATOR_OUTLINE = 6.f;
+        static constexpr size_t SMALL_MAP_INDICATOR_LAYER = 256;
 
         explicit Mob(sf::Vector2f pos);
         static MobSharedAnimation loadAnimationResources();
         static void mobUpdate(entt::entity entity, sf::Time deltaTime);
         static void onCollision(game::EOnCollisionEvent e);
+        static void makeSmallMapIndicator(entt::entity indicator);
     };
 
 } // game

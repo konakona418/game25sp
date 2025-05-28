@@ -64,12 +64,16 @@ namespace game {
         if (realElapsed >= m_duration) {
             //m_elapsed = sf::Time::Zero;
             m_running = false;
-            m_completionCallback(entity);
+            if (m_completionCallback) {
+                m_completionCallback(entity);
+            }
             return;
         }
 
         float progress = std::clamp(realElapsed.asSeconds() / m_duration.asSeconds(), 0.f, 1.f);
-        m_callback(entity, m_easingFunction(progress) * (m_endValue - m_beginValue) + m_beginValue);
+        if (m_callback) {
+            m_callback(entity, m_easingFunction(progress) * (m_endValue - m_beginValue) + m_beginValue);
+        }
     }
 
     void CTweenComponent::restart() {
