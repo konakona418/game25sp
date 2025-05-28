@@ -1,3 +1,5 @@
+#version 120
+
 uniform sampler2D u_texture;
 uniform float u_time;
 
@@ -5,7 +7,7 @@ uniform float u_chromatic_strength;
 
 void main()
 {
-    vec2 uv = gl_TexCoord[0];
+    vec2 uv = gl_TexCoord[0].xy;
     vec2 center = vec2(0.5, 0.5);
 
     // barrel distortion on the edges

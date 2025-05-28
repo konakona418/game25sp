@@ -1,8 +1,10 @@
+#version 120
+
 uniform sampler2D u_texture;
 uniform float u_brightness_threshold;
 
 void main() {
-    vec2 texCoord = gl_TexCoord[0];
+    vec2 texCoord = gl_TexCoord[0].xy;
     vec4 color = texture2D(u_texture, texCoord);
     vec3 brightness = vec3(0.2126, 0.7152, 0.0722);
 
