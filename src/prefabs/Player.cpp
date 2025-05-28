@@ -97,13 +97,18 @@ void game::prefab::Player::onUpdate(entt::entity entity, sf::Time deltaTime) {
         player.attackCoolDown.restart();
     }
 
+    if (keyboard.isKeyPressed(sf::Keyboard::Key::Z) && player.normalAttackCoolDown.getElapsedTime() > NORMAL_ATTACK_COOLDOWN) {
+        game::prefab::PlayerBullet::create(position, PlayerBullet::Type::Normal);
+        player.normalAttackCoolDown.restart();
+    }
+
     auto& mpTextRenderComponent = registry.get<game::CTextRenderComponent>(player.mpCoolDownText);
     float mpCoolDownRatio = std::clamp(player.attackCoolDown.getElapsedTime().asSeconds() / ATTACK_COOLDOWN.asSeconds(), 0.f, 1.f) * 100.f;
     mpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::ceil(mpCoolDownRatio))) + "%");
 
     auto& hpTextRenderComponent = registry.get<game::CTextRenderComponent>(player.hpText);
     hpTextRenderComponent.setText(std::to_string(static_cast<int32_t>(std::floor(player.health)))
-        + (player.allowCheating ? " *" : ""));
+        + (player.allowCheating ? "*" : ""));
 
     auto lerpedPositionFast = lerp(lastCameraPosition, destination, DAMPING_FACTOR_FAST);
     auto& hpTextLocalTransform = registry.get<game::CLocalTransform>(player.hpText);
@@ -186,6 +191,7 @@ game::prefab::Player::Player() : TreeLike() {
 
     auto& playerComponent = registry.emplace<game::prefab::GPlayerComponent>(entity, animations);
     playerComponent.attackCoolDown.restart();
+    playerComponent.normalAttackCoolDown.restart();
 
     entt::entity hpText = registry.create();
     makeHpText(hpText);

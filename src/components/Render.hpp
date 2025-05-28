@@ -68,6 +68,8 @@ namespace game {
         void setFrame(entt::resource<SpriteFrame> frame) { m_frame = std::move(frame); }
         [[nodiscard]] entt::resource<SpriteFrame> getFrame() const { return m_frame; }
 
+        std::optional<sf::Sprite*> getSprite() { return (m_sprite.has_value() ? std::optional<sf::Sprite*>(&*m_sprite) : std::nullopt); }
+
         void update(sf::RenderTarget& target, const CGlobalTransform& globalTransform);
     private:
         entt::resource<SpriteFrame> m_frame;

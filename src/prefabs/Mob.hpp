@@ -22,6 +22,12 @@ namespace game::prefab {
         explicit EOnMobHitEvent(entt::entity mob) : mob(mob) {}
     };
 
+    struct EOnMobDeathEvent {
+        entt::entity mob;
+
+        explicit EOnMobDeathEvent(entt::entity mob) : mob(mob) {}
+    };
+
     struct GMobComponent {
         static constexpr sf::Time MOVE_INTERVAL = sf::seconds(1.5f);
         static constexpr sf::Time ATTACK_INTERVAL = sf::seconds(1.0f);

@@ -15,15 +15,27 @@ namespace game::prefab {
         entt::entity entity;
     };
 
+    struct GSplashScreenComponent {
+        enum class SplashScreenState {
+            SPLASH_SCREEN_IDLE,
+            SPLASH_SCREEN_FADE_IN,
+            SPLASH_SCREEN_WAIT,
+            SPLASH_SCREEN_FADE_OUT,
+        };
+
+        SplashScreenState splashScreenState { SplashScreenState::SPLASH_SCREEN_FADE_IN };
+    };
+
     class SplashScreen : game::TreeLike {
     public:
         static SplashScreen create() { return {}; };
     private:
-        static constexpr float SPLASH_SCREEN_DURATION = 4.0f;
+        static constexpr float SPLASH_SCREEN_PHASE_DURATION = 1.0f;
 
         SplashScreen();
         static entt::resource<game::SpriteFrame> loadImage();
         static void onTweenCompleted(entt::entity entity);
+        static void onTweenUpdate(entt::entity entity, float progress);
 
     };
 

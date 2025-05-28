@@ -39,6 +39,7 @@ namespace game::prefab {
 
         bool attackKeyDown { false };
         sf::Clock attackCoolDown;
+        sf::Clock normalAttackCoolDown;
 
         entt::entity hpText { entt::null };
         entt::entity mpCoolDownText { entt::null };
@@ -62,6 +63,7 @@ namespace game::prefab {
         static constexpr float DAMPING_FACTOR = 0.1f;
         static constexpr float DAMPING_FACTOR_FAST = 0.9f;
         static constexpr sf::Time ATTACK_COOLDOWN = sf::seconds(1.f);
+        static constexpr sf::Time NORMAL_ATTACK_COOLDOWN = sf::seconds(0.5f);
         static constexpr size_t HP_FONT_SIZE = 24;
         static constexpr size_t MP_FONT_SIZE = 18;
 

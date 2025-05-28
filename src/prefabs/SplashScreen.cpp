@@ -30,11 +30,14 @@ namespace game::prefab {
         auto frame = loadImage();
         registry.emplace<game::CSpriteRenderComponent>(entity, frame);
 
+        registry.emplace<GSplashScreenComponent>(entity);
+
         auto& tweenComponent = registry.emplace<game::CTweenComponent>(entity);
+        tweenComponent.setCallback(&SplashScreen::onTweenUpdate);
         tweenComponent.setCompletionCallback(&SplashScreen::onTweenCompleted);
         tweenComponent.setBeginValue(0.f);
         tweenComponent.setEndValue(1.f);
-        tweenComponent.setDuration(sf::seconds(SPLASH_SCREEN_DURATION));
+        tweenComponent.setDuration(sf::seconds(SPLASH_SCREEN_PHASE_DURATION));
         tweenComponent.restart();
     }
 
@@ -55,6 +58,44 @@ namespace game::prefab {
     }
 
     void SplashScreen::onTweenCompleted(entt::entity entity) {
-        game::getEventDispatcher().trigger<EOnSplashScreenCompletedEvent>(EOnSplashScreenCompletedEvent { entity });
+        auto& registry = game::getRegistry();
+        auto& splashScreenComponent = registry.get<GSplashScreenComponent>(entity);
+        auto& tweenComponent = registry.get<game::CTweenComponent>(entity);
+
+        if (splashScreenComponent.splashScreenState == GSplashScreenComponent::SplashScreenState::SPLASH_SCREEN_FADE_IN) {
+            splashScreenComponent.splashScreenState = GSplashScreenComponent::SplashScreenState::SPLASH_SCREEN_WAIT;
+            tweenComponent.setBeginValue(1.f);
+            tweenComponent.setEndValue(1.f);
+            tweenComponent.setDuration(sf::seconds(SPLASH_SCREEN_PHASE_DURATION));
+            tweenComponent.restart();
+
+            return;
+        }
+        if (splashScreenComponent.splashScreenState == GSplashScreenComponent::SplashScreenState::SPLASH_SCREEN_WAIT) {
+            splashScreenComponent.splashScreenState = GSplashScreenComponent::SplashScreenState::SPLASH_SCREEN_FADE_OUT;
+            tweenComponent.setBeginValue(1.f);
+            tweenComponent.setEndValue(0.f);
+            tweenComponent.setDuration(sf::seconds(SPLASH_SCREEN_PHASE_DURATION * 2.0f));
+            tweenComponent.restart();
+
+            return;
+        }
+        if (splashScreenComponent.splashScreenState == GSplashScreenComponent::SplashScreenState::SPLASH_SCREEN_FADE_OUT) {
+            splashScreenComponent.splashScreenState = GSplashScreenComponent::SplashScreenState::SPLASH_SCREEN_IDLE;
+            game::getEventDispatcher().trigger<EOnSplashScreenCompletedEvent>(EOnSplashScreenCompletedEvent { entity });
+        }
+    }
+
+    void SplashScreen::onTweenUpdate(entt::entity entity, float progress) {
+        auto& registry = game::getRegistry();
+        auto& splashScreenComponent = registry.get<GSplashScreenComponent>(entity);
+        auto& tweenComponent = registry.get<game::CTweenComponent>(entity);
+        auto& spriteRenderComponent = registry.get<game::CSpriteRenderComponent>(entity);
+
+        auto sprite = spriteRenderComponent.getSprite();
+        if (!sprite.has_value()) {
+            return;
+        }
+        sprite.value()->setColor(sf::Color(255, 255, 255, static_cast<uint8_t>(progress * 255)));
     }
 } // game

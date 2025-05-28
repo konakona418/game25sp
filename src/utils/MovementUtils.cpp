@@ -132,4 +132,14 @@ namespace game {
             MovementUtils::flip(entity, Flip::None);
         }
     }
+
+    bool MovementUtils::isOutOfMapBounds(entt::entity entity, sf::Vector2f minBound, sf::Vector2f maxBound, sf::Vector2f offset) {
+        if (minBound.x > maxBound.x || minBound.y > maxBound.y) {
+            throw std::runtime_error("Min bound is greater than max bound");
+        }
+        if (offset.x > maxBound.x || offset.y > maxBound.y || offset.x < minBound.x || offset.y < minBound.y) {
+            return true;
+        }
+        return false;
+    }
 } // game

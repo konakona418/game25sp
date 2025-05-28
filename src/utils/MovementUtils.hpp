@@ -90,6 +90,8 @@ namespace game {
         static void flip(entt::entity entity, sf::Vector2f flip);
         static void flipHorizontal(entt::entity entity, bool flip);
         static void flipVertical(entt::entity entity, bool flip);
+
+        static bool isOutOfMapBounds(entt::entity entity, sf::Vector2f minBound, sf::Vector2f maxBound, sf::Vector2f offset);
     };
 } // game
 

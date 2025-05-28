@@ -21,20 +21,36 @@ namespace game::prefab {
     PlayerBullet::PlayerBullet() : PlayerBullet({0.f, 0.f}) {
     }
 
-    PlayerBullet::PlayerBullet(const sf::Vector2f& pos) : game::TreeLike() {
+    PlayerBullet::PlayerBullet(const sf::Vector2f& pos, const Type type) : game::TreeLike() {
         static size_t renderOrderAccumulator = 0;
 
         auto& registry = game::getRegistry();
         auto entity = registry.create();
         m_entity = entity;
 
+        sf::Vector2f scale;
+        float lightRadius;
+        float damage;
+
+        if (type == Type::Big) {
+            scale = {1.f, 1.f};
+            lightRadius = 36.f;
+            damage = 100.f;
+        } else {
+            scale = {0.3f, 0.3f};
+            lightRadius = 16.f;
+            damage = 25.f;
+        }
+
         game::MovementUtils::builder()
                 .setLocalPosition(pos)
-                .setSize({32, 32})
-                .setScale({1.0, 1.0})
+                .setSize({32.f, 32.f})
+                .setScale(scale)
                 .setAnchor(game::CLayout::Anchor::MiddleCenter())
                 .build(entity);
         game::SceneTreeUtils::attachSceneTreeComponents(entity);
+
+        registry.emplace<CVelocity>(entity);
 
         registry.emplace<game::CRenderComponent>(entity);
         registry.emplace<game::CRenderLayerComponent>(entity, RENDER_LAYER, renderOrderAccumulator++);
@@ -53,9 +69,14 @@ namespace game::prefab {
         delegate.connect<&PlayerBullet::onUpdate>();
         registry.emplace<game::CScriptsComponent>(entity, delegate);
 
-        registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 192, 203, 240), 36.f);
+        registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 192, 203, 240), lightRadius);
 
-        registry.emplace<game::prefab::GPlayerBulletComponent>(entity);
+        auto& bulletComponent = registry.emplace<game::prefab::GPlayerBulletComponent>(entity);
+        bulletComponent.damage = damage;
+
+        auto smallMapIndicator = registry.create();
+        makeSmallMapIndicator(smallMapIndicator);
+        SceneTreeUtils::attachChild(entity, smallMapIndicator);
     }
 
     entt::resource<SpriteFrame> PlayerBullet::loadTexture() {
@@ -78,6 +99,26 @@ namespace game::prefab {
     void PlayerBullet::onUpdate(entt::entity entity, sf::Time deltaTime) {
         auto& registry = game::getRegistry();
         auto bulletPos = registry.get<game::CGlobalTransform>(entity).getPosition();
+        constexpr sf::Vector2f bound { 1024.0, 1024.0 };
+
+        if (game::MovementUtils::isOutOfMapBounds(entity, -bound, bound, bulletPos)) {
+            UnmountUtils::queueUnmount(entity);
+        }
+
+        auto maybeTarget = findNearestMobPosition(entity);
+        if (maybeTarget.has_value()) {
+            auto& velocity = registry.get<game::CVelocity>(entity);
+
+            auto [target, targetPosition] = maybeTarget.value();
+            auto normal = (targetPosition - bulletPos).normalized();
+            auto lerped = game::lerp(velocity.getVelocity(), normal * SPEED, 0.05f);
+            velocity.setVelocity(lerped);
+        }
+    }
+
+    std::optional<std::pair<entt::entity, sf::Vector2f>> PlayerBullet::findNearestMobPosition(entt::entity self) {
+        auto& registry = game::getRegistry();
+        auto bulletPos = registry.get<game::CGlobalTransform>(self).getPosition();
 
         entt::entity target { entt::null };
         float minDistance = std::numeric_limits<float>::max();
@@ -94,10 +135,32 @@ namespace game::prefab {
         });
 
         if (target != entt::null) {
-            auto normal = (targetPosition - bulletPos).normalized();
-            MovementUtils::move(entity, normal * SPEED * deltaTime.asSeconds());
-        } else {
-            UnmountUtils::queueUnmount(entity);
+            return std::make_pair(target, targetPosition);
         }
+        return std::nullopt;
+    }
+
+    void PlayerBullet::makeSmallMapIndicator(entt::entity indicator) {
+        auto& registry = game::getRegistry();
+
+        game::MovementUtils::builder()
+                .setLocalPosition({0.f, 0.f})
+                .setSize({SMALL_MAP_INDICATOR_SIZE, 0.f})
+                .setScale({1.0, 1.0})
+                .setAnchor(game::CLayout::Anchor::MiddleCenter())
+                .build(indicator);
+        SceneTreeUtils::attachSceneTreeComponents(indicator);
+
+        registry.emplace<game::CRenderComponent>(indicator);
+        registry.emplace<game::CRenderLayerComponent>(indicator, SMALL_MAP_INDICATOR_LAYER, 0);
+        registry.emplace<game::CRenderTargetComponent>(indicator, game::CRenderTargetComponent::SmallMap);
+
+        auto* circleShape = new sf::CircleShape(SMALL_MAP_INDICATOR_SIZE);
+        circleShape->setFillColor(sf::Color(96, 196, 255, 196));
+        circleShape->setOutlineColor(sf::Color(255, 255, 255, 196));
+        circleShape->setOutlineThickness(SMALL_MAP_INDICATOR_OUTLINE);
+
+        auto uniqueShape = std::unique_ptr<sf::CircleShape>(circleShape);
+        registry.emplace<game::CShapeRenderComponent>(indicator, std::move(uniqueShape));
     }
 } // game

@@ -93,6 +93,12 @@ namespace game::prefab {
         auto& registry = game::getRegistry();
         auto& mobComponent = registry.get<game::prefab::GMobComponent>(entity);
 
+        if (mobComponent.health <= 0) {
+            UnmountUtils::queueUnmount(entity);
+            game::getEventDispatcher().trigger<EOnMobDeathEvent>(EOnMobDeathEvent { entity });
+            return;
+        }
+
         auto& playerSelector = *registry.view<game::prefab::GPlayerComponent>().begin();
         if (!registry.valid(playerSelector)) {
             auto& velocityComponent = registry.get<game::CVelocity>(entity);
@@ -145,10 +151,15 @@ namespace game::prefab {
     }
 
     void Mob::onCollision(game::EOnCollisionEvent e) {
+        auto& registry = game::getRegistry();
         auto pair = game::which<game::prefab::GPlayerBulletComponent, game::prefab::GMobComponent>(e.collider1, e.collider2);
         if (pair) {
-            UnmountUtils::queueUnmount(e.collider1);
-            UnmountUtils::queueUnmount(e.collider2);
+            auto& playerBulletComponent = registry.get<game::prefab::GPlayerBulletComponent>(pair->first);
+            auto& mobComponent = registry.get<game::prefab::GMobComponent>(pair->second);
+            mobComponent.health -= playerBulletComponent.damage;
+
+            UnmountUtils::queueUnmount(pair->first);
+
             getEventDispatcher().trigger<EOnMobHitEvent>(EOnMobHitEvent { pair->second });
         }
     }

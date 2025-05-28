@@ -58,7 +58,7 @@ void onBannerComplete(game::prefab::EOnBannerCompleteEvent e) {
     makeMobs();
 }
 
-void onMobHit(game::prefab::EOnMobHitEvent e) {
+void onMobDeath(game::prefab::EOnMobDeathEvent e) {
     auto& registry = game::getRegistry();
     size_t size = 0;
     registry.view<game::prefab::GMobComponent>().each([&size](entt::entity e, game::prefab::GMobComponent&) {
@@ -117,7 +117,7 @@ int main() {
     eventDispatcher.sink<game::prefab::EOnSplashScreenCompletedEvent>().connect<&onSplashScreenCompleted>();
     eventDispatcher.sink<game::prefab::EOnDialogBoxCompletedEvent>().connect<&onDialogCompleted>();
     eventDispatcher.sink<game::prefab::EOnPlayerDeathEvent>().connect<&onPlayerDeath>();
-    eventDispatcher.sink<game::prefab::EOnMobHitEvent>().connect<&onMobHit>();
+    eventDispatcher.sink<game::prefab::EOnMobDeathEvent>().connect<&onMobDeath>();
     eventDispatcher.sink<game::prefab::EOnBannerCompleteEvent>().connect<&onBannerComplete>();
 
     game.run();
