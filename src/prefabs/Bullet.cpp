@@ -13,6 +13,7 @@
 #include "utils/LazyLoader.hpp"
 #include "utils/MovementUtils.hpp"
 #include "components/Lighting.hpp"
+#include "components/Scripts.hpp"
 
 namespace game::prefab {
 
@@ -24,7 +25,15 @@ namespace game::prefab {
         return { pos, dir, speed };
     }
 
-    void Bullet::onUpdate(entt::entity entity, sf::Time deltaTime) {}
+    void Bullet::onUpdate(entt::entity entity, sf::Time deltaTime) {
+        auto& registry = getRegistry();
+        auto bulletPos = registry.get<game::CGlobalTransform>(entity).getPosition();
+        constexpr sf::Vector2f bound { 1024.0, 1024.0 };
+
+        if (game::MovementUtils::isOutOfMapBounds(entity, -bound, bound, bulletPos)) {
+            UnmountUtils::queueUnmount(entity);
+        }
+    }
 
     Bullet::Bullet(sf::Vector2f pos, sf::Vector2f dir) {
         create(pos, dir, DEFAULT_SPEED);
@@ -58,6 +67,10 @@ namespace game::prefab {
         // on layer 2, collide with player(1)
         registry.emplace<game::CCollisionLayerComponent>(entity,
             CollisionUtils::getCollisionMask(2), CollisionUtils::getCollisionMask(1));
+
+        game::InvokeUpdateDelegate delegate;
+        delegate.connect<&Bullet::onUpdate>();
+        registry.emplace<game::CScriptsComponent>(entity, delegate);
 
         registry.emplace<game::CLightingComponent>(entity, sf::Color(255, 192, 203, 196), 12.f);
 

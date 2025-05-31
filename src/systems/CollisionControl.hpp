@@ -8,6 +8,7 @@
 #include <entt/entity/entity.hpp>
 
 #include "SFML/System/Time.hpp"
+#include "SFML/System/Vector2.hpp"
 
 namespace game {
 
@@ -26,6 +27,7 @@ namespace game {
         static bool checkCollisionCircles(entt::registry& reg, const entt::entity& entity1, const entt::entity& entity2);
         static bool checkCollisionBoxCircle(entt::registry& reg, const entt::entity& entity1, const entt::entity& entity2);
         static void emitSignal(entt::registry& reg, const entt::entity& entity1, const entt::entity& entity2);
+        static std::pair<ssize_t, ssize_t> mapGrid(const sf::Vector2f& position, sf::Vector2f gridSize = {32.f, 32.f});
     };
 
 } // game

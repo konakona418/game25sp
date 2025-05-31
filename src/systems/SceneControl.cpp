@@ -179,7 +179,7 @@ void game::SceneTreeUtils::unmount(entt::entity entity) {
     auto& registry = game::getRegistry();
 
     if (!registry.valid(entity)) {
-        getLogger().logWarn("Entity has been invalidated forehand.");
+        //getLogger().logWarn("Entity has been invalidated forehand.");
         return;
     }
 

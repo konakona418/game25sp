@@ -79,12 +79,16 @@ void onMobDeath(game::prefab::EOnMobDeathEvent e) {
 void onSplashScreenCompleted(game::prefab::EOnSplashScreenCompletedEvent e) {
     game::UnmountUtils::queueUnmount(e.entity);
 
+    try {
+        auto music = game::ResourceManager::getBinaryFileCache()
+                .load(entt::hashed_string{"bgm"},"assets/music/bgm.ogg").first->second;
+        game::SMusicSystem::playMusic(music, game::MusicConfig{75.f, true});
+    } catch (std::exception& e) {
+        game::getLogger().logError("Failed to load music: " + std::string(e.what()));
+    }
+
     game::prefab::SimpleMapLayer::create(0);
     game::prefab::SimpleMapLayer::create(96);
-
-    // auto music = game::ResourceManager::getBinaryFileCache().load(entt::hashed_string {"2da_bloom_99.ogg"}, "2da_bloom_99.ogg").first->second;
-    // game::SMusicSystem::playMusic(music, game::MusicConfig { true });
-
 
     game::prefab::DialogBox dialogBox = game::prefab::DialogBox::create();
     game::getRegistry().ctx().emplace<game::prefab::DialogBox>(dialogBox);

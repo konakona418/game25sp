@@ -30,8 +30,8 @@ namespace game::prefab {
 
     struct GMobComponent {
         static constexpr sf::Time MOVE_INTERVAL = sf::seconds(1.5f);
-        static constexpr sf::Time ATTACK_INTERVAL = sf::seconds(1.0f);
-        static constexpr size_t MAX_BULLET_NUM = 4;
+        static constexpr sf::Time ATTACK_INTERVAL = sf::seconds(1.f);
+        static constexpr size_t MAX_BULLET_NUM = 10;
 
         bool flipH = false;
         MobSharedAnimation animations;
