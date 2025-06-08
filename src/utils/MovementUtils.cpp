@@ -110,7 +110,7 @@ namespace game {
         auto& registry = getRegistry();
         registry.patch<CLocalTransform>(entity, [flip](CLocalTransform& localTransform) {
             auto scale = localTransform.getScale();
-            localTransform.setScale({std::fabsf(scale.x) * flip.x, std::fabsf(scale.y) * flip.y});
+            localTransform.setScale({std::abs(scale.x) * flip.x, std::abs(scale.y) * flip.y});
         });
         markAsDirty(entity);
     }

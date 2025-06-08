@@ -30,20 +30,18 @@ jobs:
           - os: windows-latest
             c_compiler: gcc
             cpp_compiler: g++
-          - os: windows-latest
-            c_compiler: clang
-            cpp_compiler: clang++
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: cl
+          - os: windows-latest
+            c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: clang
 
     steps:
     - uses: actions/checkout@v4
@@ -67,6 +65,12 @@ jobs:
       run: >
         sudo apt-get update && sudo apt-get install -y \
             libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev libopenal-dev libflac-dev libvorbis-dev
+
+    - name: Configure Freetype if on Linux
+      if: runner.os == 'Linux'
+      run: >
+        sudo apt-get update && sudo apt-get install -y \
+            libfreetype6-dev
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
