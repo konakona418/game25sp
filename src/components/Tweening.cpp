@@ -30,7 +30,8 @@ namespace game {
     }
 
     float CTweenComponent::EasingFunction::sine(float progress) {
-        return -(std::cosf(M_PI * progress) - 1.0f) / 2.0f;
+        constexpr float pi = 3.14159265358979323846f;
+        return -(std::cos(pi * progress) - 1.0f) / 2.0f;
     }
 
     float CTweenComponent::EasingFunction::exponential(float progress) {
@@ -44,9 +45,9 @@ namespace game {
 
     float CTweenComponent::EasingFunction::circular(float progress) {
         if (progress < 0.5f) {
-            return (1.0f - std::sqrtf(1.0f - std::pow(2.0f * progress, 2))) / 2.0f;
+            return (1.0f - std::sqrt(1.0f - std::pow(2.0f * progress, 2))) / 2.0f;
         }
-        return (std::sqrtf(1.0f - std::pow(-2.0f * progress + 2.0f, 2)) + 1.0f) / 2.0f;
+        return (std::sqrt(1.0f - std::pow(-2.0f * progress + 2.0f, 2)) + 1.0f) / 2.0f;
     }
 
     void CTweenComponent::update(entt::entity entity, sf::Time deltaTime) {
