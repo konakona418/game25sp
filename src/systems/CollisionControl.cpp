@@ -4,6 +4,8 @@
 
 #include "CollisionControl.hpp"
 
+#include <cmath>
+
 #include "Common.hpp"
 #include "Game.hpp"
 #include "components/Collision.hpp"
@@ -147,7 +149,7 @@ namespace game {
         auto rad1 = reg.get<CCollisionCircleComponent>(entity1).getRadius();
         auto rad2 = reg.get<CCollisionCircleComponent>(entity2).getRadius();
 
-        return (pos1 - pos2).lengthSquared() < std::powf(rad1 + rad2, 2);
+        return (pos1 - pos2).lengthSquared() < std::pow(rad1 + rad2, 2);
     }
 
     bool SCollisionSystem::checkCollisionBoxCircle(entt::registry& reg, const entt::entity& entity1, const entt::entity& entity2) {
@@ -162,7 +164,7 @@ namespace game {
 
             const auto& pos2 = reg.get<CGlobalTransform>(entity2).getPosition();
             auto rad2 = reg.get<CCollisionCircleComponent>(entity2).getRadius();
-            return (pos1 - pos2).lengthSquared() < std::powf(rad1 + rad2, 2);
+            return (pos1 - pos2).lengthSquared() < std::pow(rad1 + rad2, 2);
         }
         if (reg.any_of<CCollisionCircleComponent>(entity1)) {
             const auto& pos1 = reg.get<CGlobalTransform>(entity1).getPosition();
@@ -171,7 +173,7 @@ namespace game {
             const auto& pos2 = reg.get<CGlobalTransform>(entity2).getPosition();
             const auto& boxSize2 = reg.get<CCollisionAABBComponent>(entity2).getBoundingBox();
             auto rad2 = boxSize2.length() / 2;
-            return (pos1 - pos2).lengthSquared() < std::powf(rad1 + rad2, 2);
+            return (pos1 - pos2).lengthSquared() < std::pow(rad1 + rad2, 2);
         }
         return false;
     }

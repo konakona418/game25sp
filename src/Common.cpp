@@ -5,6 +5,7 @@
 #include "Common.hpp"
 
 #include <random>
+#include <cmath>
 
 #include "Game.hpp"
 
@@ -65,10 +66,10 @@ namespace game {
     }
 
     float lerp(float from, float dest, float damping, sf::Time deltaTime) {
-        return lerp(from, dest, 1.f - std::powf(damping, deltaTime.asSeconds()));
+        return lerp(from, dest, 1.f - std::pow(damping, deltaTime.asSeconds()));
     }
 
     sf::Vector2f lerp(sf::Vector2f from, sf::Vector2f dest, float damping, sf::Time deltaTime) {
-        return lerp(from, dest, 1.f - std::powf(damping, deltaTime.asSeconds()));
+        return lerp(from, dest, 1.f - std::pow(damping, deltaTime.asSeconds()));
     }
 }

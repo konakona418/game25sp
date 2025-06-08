@@ -12,21 +12,21 @@ namespace game {
         if (progress < 0.5f) {
             return 2.0f * progress * progress;
         }
-        return 1.0f - std::powf(-2.0f * progress + 2.0f, 2) / 2.0f;
+        return 1.0f - std::pow(-2.0f * progress + 2.0f, 2) / 2.0f;
     }
 
     float CTweenComponent::EasingFunction::cubic(float progress) {
         if (progress < 0.5f) {
             return 4.0f * progress * progress * progress;
         }
-        return 1.0f - std::powf(-2.0f * progress + 2.0f, 3) / 2.0f;
+        return 1.0f - std::pow(-2.0f * progress + 2.0f, 3) / 2.0f;
     }
 
     float CTweenComponent::EasingFunction::quartic(float progress) {
         if (progress < 0.5f) {
             return 8.0f * progress * progress * progress * progress;
         }
-        return 1.0f - std::powf(-2.0f * progress + 2.0f, 4) / 2.0f;
+        return 1.0f - std::pow(-2.0f * progress + 2.0f, 4) / 2.0f;
     }
 
     float CTweenComponent::EasingFunction::sine(float progress) {
@@ -37,16 +37,16 @@ namespace game {
         if (progress == 0.0f) return 0.0f;
         if (progress == 1.0f) return 1.0f;
         if (progress < 0.5f) {
-            return std::powf(2.0f, 20.0f * progress - 10.0f) / 2.0f;
+            return std::pow(2.0f, 20.0f * progress - 10.0f) / 2.0f;
         }
-        return (2.0f - std::powf(2.0f, -20.0f * progress + 10.0f)) / 2.0f;
+        return (2.0f - std::pow(2.0f, -20.0f * progress + 10.0f)) / 2.0f;
     }
 
     float CTweenComponent::EasingFunction::circular(float progress) {
         if (progress < 0.5f) {
-            return (1.0f - std::sqrtf(1.0f - std::powf(2.0f * progress, 2))) / 2.0f;
+            return (1.0f - std::sqrtf(1.0f - std::pow(2.0f * progress, 2))) / 2.0f;
         }
-        return (std::sqrtf(1.0f - std::powf(-2.0f * progress + 2.0f, 2)) + 1.0f) / 2.0f;
+        return (std::sqrtf(1.0f - std::pow(-2.0f * progress + 2.0f, 2)) + 1.0f) / 2.0f;
     }
 
     void CTweenComponent::update(entt::entity entity, sf::Time deltaTime) {
